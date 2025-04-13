@@ -6,3 +6,41 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum MissionStatus {
+  IN_PROGRESS
+  COMPLETED
+  DELETED
+}
+
+model Mission {
+  id          Int           @id @default(autoincrement())
+  accountId   Int           @map("account_id")
+  name        String
+  description String
+  status      MissionStatus @default(IN_PROGRESS)
+
+  achievementId Int?         @map("achievement_id")
+  achievement   Achievement? @relation(fields: [achievementId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("mission")
+}
+
+model Achievement {
+  id          Int    @id @default(autoincrement())
+  accountId   Int    @map("account_id")
+  name        String
+  description String
+
+  missions Mission[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("achievement")
+}
