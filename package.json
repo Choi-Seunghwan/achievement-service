@@ -14,7 +14,7 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@choi-seunghwan/api-util": "^0.1.3",
+    "@choi-seunghwan/api-util": "^0.2.1",
     "@choi-seunghwan/authorization": "^0.1.16",
     "@nestjs-cls/transactional": "^2.5.1",
     "@nestjs-cls/transactional-adapter-prisma": "^1.2.17",
