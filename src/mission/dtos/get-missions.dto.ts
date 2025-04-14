@@ -3,10 +3,10 @@ import { IsEnum, IsNumber, IsOptional } from 'class-validator';
 
 export class GetMissionsDto {
   @IsNumber()
-  page: number;
+  page: number = 1;
 
   @IsNumber()
-  size: number;
+  size: number = 20;
 
   @IsEnum(MissionStatus)
   @IsOptional()
