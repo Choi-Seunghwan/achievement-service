@@ -17,8 +17,14 @@ model Mission {
   id          Int           @id @default(autoincrement())
   accountId   Int           @map("account_id")
   name        String
-  description String
+  description String?
+  type        String
   status      MissionStatus @default(IN_PROGRESS)
+
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  progress    Int?      @default(0)
+  progressMax Int?      @default(100)
 
   achievementId Int?         @map("achievement_id")
   achievement   Achievement? @relation(fields: [achievementId], references: [id])
@@ -31,10 +37,10 @@ model Mission {
 }
 
 model Achievement {
-  id          Int    @id @default(autoincrement())
-  accountId   Int    @map("account_id")
+  id          Int     @id @default(autoincrement())
+  accountId   Int     @map("account_id")
   name        String
-  description String
+  description String?
 
   missions Mission[]
 
