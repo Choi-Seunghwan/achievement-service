@@ -26,7 +26,19 @@ export class MissionRepository {
     return { total, items };
   }
 
+  async getMission(args: Prisma.MissionFindUniqueArgs) {
+    return await this.prisma.mission.findUnique({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+      omit: { ...args.omit, deletedAt: true },
+    });
+  }
+
   async createMission(args: Prisma.MissionCreateArgs) {
     return await this.prisma.mission.create(args);
+  }
+
+  async updateMission(args: Prisma.MissionUpdateArgs) {
+    return await this.prisma.mission.update(args);
   }
 }
