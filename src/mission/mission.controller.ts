@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MissionService } from './mission.service';
-import { Response } from '@choi-seunghwan/api-util';
+import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import { GetMissionsDto } from './dtos/get-missions.dto';
 import { CreateMissionDto } from './dtos/create-mission.dto';
@@ -30,10 +30,15 @@ export class MissionController {
       { page: query.page, size: query.size },
     );
 
-    return Response.of(result);
+    return PagingResponse.of(
+      result.items,
+      result.total,
+      query.page,
+      query.size,
+    );
   }
 
-  @Post('/create')
+  @Post('/')
   @UseGuards(AuthGuard)
   async createMission(@User() user: JwtPayload, @Body() dto: CreateMissionDto) {
     const result = await this.missionService.createMission(user.accountId, {
