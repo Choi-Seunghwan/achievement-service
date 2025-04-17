@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -12,8 +14,10 @@ import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import { GetMissionsDto } from './dtos/get-missions.dto';
 import { CreateMissionDto } from './dtos/create-mission.dto';
-import { CompleteMissionDto } from './dtos/complete-mission.dto';
-import { GetMissionDto } from './dtos/get-mission.dto';
+import { MissionIdParam } from './dtos/mission-id.param';
+import { UpdateMissionDto } from './dtos/update-mission.dto';
+import { TaskIdParam } from './dtos/task-id.param';
+import { CreateMissionTaskDto } from './dtos/create-mission-task.dto';
 
 @Controller('missions')
 export class MissionController {
@@ -49,29 +53,47 @@ export class MissionController {
     return Response.of(result);
   }
 
-  @Post('/complete')
+  @Patch('/:missionId')
+  @UseGuards(AuthGuard)
+  async updateMission(
+    @User() user: JwtPayload,
+    @Param() param: MissionIdParam,
+    @Body() dto: UpdateMissionDto,
+  ) {
+    const result = await this.missionService.updateMission(
+      user.accountId,
+      param.missionId,
+      {
+        name: dto.name,
+        description: dto.description,
+      },
+    );
+    return Response.of(result);
+  }
+
+  @Post(':missionId/complete')
   @UseGuards(AuthGuard)
   async completeMission(
     @User() user: JwtPayload,
-    @Body() dto: CompleteMissionDto,
+    @Param() param: MissionIdParam,
   ) {
     const result = await this.missionService.completeMission(
       user.accountId,
-      dto.missionId,
+      param.missionId,
     );
 
     return Response.of(result);
   }
 
-  @Delete('/delete')
+  @Delete(':missionId/delete')
   @UseGuards(AuthGuard)
   async deleteMission(
     @User() user: JwtPayload,
-    @Query('missionId') missionId: number,
+    @Param() param: MissionIdParam,
   ) {
     const result = await this.missionService.deleteMission(
       user.accountId,
-      missionId,
+      param.missionId,
     );
 
     return Response.of(result);
@@ -79,12 +101,66 @@ export class MissionController {
 
   @Get('/:missionId')
   @UseGuards(AuthGuard)
-  async getMission(@User() user: JwtPayload, @Query() query: GetMissionDto) {
+  async getMission(@User() user: JwtPayload, @Query() query: MissionIdParam) {
     const result = await this.missionService.getMission(
       user.accountId,
       query.missionId,
     );
 
     return Response.of(result);
+  }
+
+  /** Mission Task */
+
+  @Post('/:missionId/task')
+  @UseGuards(AuthGuard)
+  async createTask(
+    @User() user: JwtPayload,
+    @Param() missionIdParam: MissionIdParam,
+    @Body() dto: CreateMissionTaskDto,
+  ) {
+    const result = await this.missionService.createMissionTask(
+      user.accountId,
+      missionIdParam.missionId,
+      { name: dto.name },
+    );
+
+    return Response.of(result);
+  }
+
+  @Post('/:missionId/task/:taskId/complete')
+  @UseGuards(AuthGuard)
+  async completeTask(
+    @User() user: JwtPayload,
+    @Param() missionId: MissionIdParam,
+    @Param() taskId: TaskIdParam,
+  ) {
+    const result = await this.missionService.completeMissionTask(
+      user.accountId,
+      missionId.missionId,
+      taskId.taskId,
+    );
+
+    return Response.of(result);
+  }
+
+  @Post('/:missionId/task/:taskId/update')
+  @UseGuards(AuthGuard)
+  async updateTask(
+    @User() user: JwtPayload,
+    @Param() param: MissionIdParam,
+    @Param() taskId: TaskIdParam,
+    @Body() dto: any,
+  ) {
+    //
+  }
+
+  @Post('/:missionId/task/order')
+  @UseGuards(AuthGuard)
+  async updateTaskOrder(
+    @User() user: JwtPayload,
+    @Param() missionId: MissionIdParam,
+  ) {
+    //
   }
 }

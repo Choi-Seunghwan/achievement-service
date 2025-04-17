@@ -1,9 +1,10 @@
 import { IsArray, IsOptional, IsString } from 'class-validator';
 import { MissionTaskDto } from './mission-task-dto';
 
-export class CreateMissionDto {
+export class UpdateMissionDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @IsString()
   @IsOptional()

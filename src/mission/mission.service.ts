@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { MissionRepository } from './mission.repository';
 import { MissionStatus } from '@prisma/client';
+import { MissionTask } from './types/mission.types';
+import { MISSION_TASK_MAX_COUNT } from './constants/mission.constant';
 
 @Injectable()
 export class MissionService {
@@ -27,7 +33,7 @@ export class MissionService {
       where: { id: missionId, accountId },
     });
     if (!mission)
-      return new NotFoundException(
+      throw new NotFoundException(
         `mission not found (accountId: ${accountId}, missionId: ${missionId})`,
       );
 
@@ -53,6 +59,22 @@ export class MissionService {
   }
 
   /**
+   * 미션 수정
+   */
+  async updateMission(
+    accountId: number,
+    missionId: number,
+    data: { name?: string; description?: string },
+  ) {
+    await this.getMission(accountId, missionId);
+
+    await this.missionRepository.updateMission({
+      where: { id: missionId, accountId },
+      data,
+    });
+  }
+
+  /**
    * 미션 완료
    */
   async completeMission(accountId: number, missionId: number) {
@@ -71,6 +93,82 @@ export class MissionService {
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
       data: { deletedAt: new Date() },
+    });
+
+    return true;
+  }
+
+  /**
+   * 미션 Task 생성
+   */
+  async createMissionTask(
+    accountId: number,
+    missionId: number,
+    data: { name: string },
+  ) {
+    const mission = await this.getMission(accountId, missionId);
+
+    if (mission.tasks.length >= MISSION_TASK_MAX_COUNT)
+      throw new BadRequestException(
+        `max task count error, max: ${MISSION_TASK_MAX_COUNT}, current: ${mission.tasks.length}`,
+      );
+
+    const newTaskId = Math.max(
+      ...mission.tasks.map((task: MissionTask) => Number(task.id)),
+    );
+
+    const newTask = {
+      id: newTaskId,
+      name: data.name,
+      complete: false,
+    };
+
+    await this.missionRepository.updateMission({
+      where: {
+        id: missionId,
+        accountId,
+        deletedAt: null,
+      },
+      data: {
+        tasks: [...mission.tasks, newTask],
+      },
+    });
+
+    return true;
+  }
+
+  /** 미션 Task 완료 */
+
+  async completeMissionTask(
+    accountId: number,
+    missionId: number,
+    taskId: number,
+  ) {
+    const mission = await this.getMission(accountId, missionId);
+
+    const task = mission.tasks.find((task: MissionTask) => task.id === taskId);
+
+    if (!task) throw new NotFoundException('task not found');
+
+    const newTasks = mission.tasks.map((task: MissionTask) => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          complete: true,
+        };
+      }
+      return task;
+    });
+
+    await this.missionRepository.updateMission({
+      where: {
+        id: missionId,
+        accountId,
+        deletedAt: null,
+      },
+      data: {
+        tasks: newTasks,
+      },
     });
 
     return true;
