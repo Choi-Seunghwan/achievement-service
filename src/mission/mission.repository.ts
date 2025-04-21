@@ -30,7 +30,7 @@ export class MissionRepository {
     return await this.prisma.mission.findUnique({
       ...args,
       where: { ...args.where, deletedAt: null },
-      omit: { ...args.omit, deletedAt: true },
+      include: { ...args.include },
     });
   }
 

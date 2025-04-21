@@ -4,8 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MissionRepository } from './mission.repository';
-import { MissionStatus } from '@prisma/client';
-import { MissionTask } from './types/mission.types';
+import {
+  MissionRepeatDay,
+  MissionRepeatType,
+  MissionStatus,
+} from '@prisma/client';
 import { MISSION_TASK_MAX_COUNT } from './constants/mission.constant';
 
 @Injectable()
@@ -31,7 +34,11 @@ export class MissionService {
   async getMission(accountId: number, missionId: number) {
     const mission = await this.missionRepository.getMission({
       where: { id: missionId, accountId },
+      include: {
+        missionTasks: true,
+      },
     });
+
     if (!mission)
       throw new NotFoundException(
         `mission not found (accountId: ${accountId}, missionId: ${missionId})`,
@@ -45,13 +52,24 @@ export class MissionService {
    */
   async createMission(
     accountId: number,
-    data: { name: string; description?: string },
+    data: {
+      name: string;
+      description?: string;
+      tasks?: { name: string }[];
+      repeatType?: MissionRepeatType;
+      repeatDays?: MissionRepeatDay[];
+    },
   ) {
     await this.missionRepository.createMission({
       data: {
         accountId,
         name: data.name,
         description: data.description,
+        repeatType: data.repeatType,
+        repeatDays: data.repeatDays,
+        missionTasks: {
+          create: data.tasks,
+        },
       },
     });
 
@@ -108,13 +126,13 @@ export class MissionService {
   ) {
     const mission = await this.getMission(accountId, missionId);
 
-    if (mission.tasks.length >= MISSION_TASK_MAX_COUNT)
+    if (mission.missionTasks.length >= MISSION_TASK_MAX_COUNT)
       throw new BadRequestException(
-        `max task count error, max: ${MISSION_TASK_MAX_COUNT}, current: ${mission.tasks.length}`,
+        `max task count error, max: ${MISSION_TASK_MAX_COUNT}, current: ${mission.missionTasks.length}`,
       );
 
     const newTaskId = Math.max(
-      ...mission.tasks.map((task: MissionTask) => Number(task.id)),
+      ...mission.missionTasks.map((task) => Number(task.id)),
     );
 
     const newTask = {
@@ -123,16 +141,16 @@ export class MissionService {
       complete: false,
     };
 
-    await this.missionRepository.updateMission({
-      where: {
-        id: missionId,
-        accountId,
-        deletedAt: null,
-      },
-      data: {
-        tasks: [...mission.tasks, newTask],
-      },
-    });
+    // await this.missionRepository.updateMission({
+    //   where: {
+    //     id: missionId,
+    //     accountId,
+    //     deletedAt: null,
+    //   },
+    //   data: {
+    //     missionTasks: [...mission.missionTasks, newTask],
+    //   },
+    // });
 
     return true;
   }
@@ -146,11 +164,11 @@ export class MissionService {
   ) {
     const mission = await this.getMission(accountId, missionId);
 
-    const task = mission.tasks.find((task: MissionTask) => task.id === taskId);
+    const task = mission.missionTasks.find((task) => task.id === taskId);
 
     if (!task) throw new NotFoundException('task not found');
 
-    const newTasks = mission.tasks.map((task: MissionTask) => {
+    const newTasks = mission.missionTasks.map((task) => {
       if (task.id === taskId) {
         return {
           ...task,
@@ -167,7 +185,7 @@ export class MissionService {
         deletedAt: null,
       },
       data: {
-        tasks: newTasks,
+        // missionTasks: newTasks,
       },
     });
 

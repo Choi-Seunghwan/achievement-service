@@ -8,9 +8,31 @@ datasource db {
 }
 
 enum MissionStatus {
-  IN_PROGRESS
-  COMPLETED
-  DELETED
+  IN_PROGRESS // 진행 중
+  COMPLETED // 완료
+  // DELETED // 삭제 됨
+}
+
+enum MissionTaskStatus {
+  IN_PROGRESS // 진행 중
+  COMPLETED // 완료
+  // DELETED // 삭제 됨
+}
+
+enum MissionRepeatType {
+  NONE // 없음 (1회만)
+  DAILY // 매일
+  WEEKLY // 요일 지정
+}
+
+enum MissionRepeatDay {
+  SUN
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
 }
 
 model Mission {
@@ -18,24 +40,52 @@ model Mission {
   accountId   Int           @map("account_id")
   name        String
   description String?
-  // type        String
   status      MissionStatus @default(IN_PROGRESS)
+
+  repeatType MissionRepeatType  @map("repeat_type")
+  repeatDays MissionRepeatDay[] @map("repeat_days")
 
   startDate DateTime? @map("start_date")
   endDate   DateTime? @map("end_date")
 
   // progress    Int?      @default(0)
   // progressMax Int?      @default(100)
-  tasks Json[] @map("tasks") // 하위 작업
 
-  achievementId Int?         @map("achievement_id")
-  achievement   Achievement? @relation(fields: [achievementId], references: [id])
+  achievementId Int?          @map("achievement_id")
+  achievement   Achievement?  @relation(fields: [achievementId], references: [id])
+  missionTasks  MissionTask[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@map("mission")
+}
+
+model MissionTask {
+  id        Int               @id @default(autoincrement())
+  missionId Int               @map("mission_id")
+  name      String
+  status    MissionTaskStatus @default(IN_PROGRESS)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  Mission Mission @relation(fields: [missionId], references: [id])
+
+  @@map("mission_task")
+}
+
+model MissionHistory {
+  id        Int     @id @default(autoincrement())
+  missionId Int     @map("mission_id")
+  taskId    Int?    @map("task_id")
+  completed Boolean
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("mission_histories")
 }
 
 model Achievement {

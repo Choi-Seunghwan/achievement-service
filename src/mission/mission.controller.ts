@@ -48,6 +48,9 @@ export class MissionController {
     const result = await this.missionService.createMission(user.accountId, {
       name: dto.name,
       description: dto.description,
+      repeatType: dto.repeatType,
+      repeatDays: dto.repeatDays,
+      tasks: dto.tasks,
     });
 
     return Response.of(result);
