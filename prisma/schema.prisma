@@ -54,6 +54,7 @@ model Mission {
   achievementId Int?          @map("achievement_id")
   achievement   Achievement?  @relation(fields: [achievementId], references: [id])
   missionTasks  MissionTask[]
+  MissionTag    MissionTag[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -101,4 +102,28 @@ model Achievement {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("achievement")
+}
+
+model Tag {
+  id        Int     @id @default(autoincrement())
+  accountId Int     @map("account_id")
+  name      String
+  color     String?
+
+  missions MissionTag[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+}
+
+model MissionTag {
+  id        Int @id @default(autoincrement())
+  missionId Int @map("mission_id")
+  tagId     Int @map("tag_id")
+
+  mission Mission @relation(fields: [missionId], references: [id])
+  tag     Tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([missionId, tagId]) // 중복 방지
+  @@map("mission_tag")
 }
