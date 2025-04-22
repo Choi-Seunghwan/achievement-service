@@ -12,12 +12,12 @@ import {
 import { MissionService } from './mission.service';
 import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
-import { GetMissionsDto } from './dtos/get-missions.dto';
-import { CreateMissionDto } from './dtos/create-mission.dto';
-import { MissionIdParam } from './dtos/mission-id.param';
-import { UpdateMissionDto } from './dtos/update-mission.dto';
-import { TaskIdParam } from './dtos/task-id.param';
-import { CreateMissionTaskDto } from './dtos/create-mission-task.dto';
+import { GetMissionsDto } from './dto/get-missions.dto';
+import { CreateMissionDto } from './dto/create-mission.dto';
+import { MissionIdParam } from './dto/mission-id.param';
+import { UpdateMissionDto } from './dto/update-mission.dto';
+import { TaskIdParam } from './dto/task-id.param';
+import { CreateMissionTaskDto } from './dto/create-mission-task.dto';
 
 @Controller('missions')
 export class MissionController {

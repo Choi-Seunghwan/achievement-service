@@ -6,6 +6,7 @@ import { AuthorizationModule } from '@choi-seunghwan/authorization';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './database/prisma.service';
 import { MissionModule } from './mission/mission.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MissionModule } from './mission/mission.module';
     DatabaseModule,
     AuthorizationModule.forRoot({ jwtSecret: process.env.JWT_SECRET }),
     MissionModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
