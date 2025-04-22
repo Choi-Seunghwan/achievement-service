@@ -41,6 +41,7 @@ model Mission {
   name        String
   description String?
   status      MissionStatus @default(IN_PROGRESS)
+  icon        String?
 
   repeatType MissionRepeatType  @map("repeat_type")
   repeatDays MissionRepeatDay[] @map("repeat_days")
