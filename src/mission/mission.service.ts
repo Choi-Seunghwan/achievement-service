@@ -56,6 +56,7 @@ export class MissionService {
       name: string;
       description?: string;
       tasks?: { name: string }[];
+      tagIds?: number[];
       repeatType?: MissionRepeatType;
       repeatDays?: MissionRepeatDay[];
     },
@@ -67,9 +68,24 @@ export class MissionService {
         description: data.description,
         repeatType: data.repeatType,
         repeatDays: data.repeatDays,
-        missionTasks: {
-          create: data.tasks,
-        },
+        ...(data.tasks?.length
+          ? {
+              missionTasks: {
+                createMany: {
+                  data: data.tasks.map((task) => ({ name: task.name })),
+                },
+              },
+            }
+          : {}),
+        ...(data.tagIds?.length
+          ? {
+              MissionTag: {
+                createMany: {
+                  data: data.tagIds.map((tagId) => ({ tagId })),
+                },
+              },
+            }
+          : {}),
       },
     });
 

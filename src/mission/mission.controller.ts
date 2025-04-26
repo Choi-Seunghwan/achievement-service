@@ -51,6 +51,7 @@ export class MissionController {
       repeatType: dto.repeatType,
       repeatDays: dto.repeatDays,
       tasks: dto.tasks,
+      tagIds: dto.tagIds,
     });
 
     return Response.of(result);
@@ -149,21 +150,14 @@ export class MissionController {
 
   @Post('/:missionId/task/:taskId/update')
   @UseGuards(AuthGuard)
-  async updateTask(
-    @User() user: JwtPayload,
-    @Param() param: MissionIdParam,
-    @Param() taskId: TaskIdParam,
-    @Body() dto: any,
-  ) {
+  async updateTask() {
+    // @Body() dto: any, // @Param() taskId: TaskIdParam, // @Param() param: MissionIdParam, // @User() user: JwtPayload,
     //
   }
 
   @Post('/:missionId/task/order')
   @UseGuards(AuthGuard)
-  async updateTaskOrder(
-    @User() user: JwtPayload,
-    @Param() missionId: MissionIdParam,
-  ) {
-    //
+  async updateTaskOrder() {
+    // @Param() missionId: MissionIdParam, // @User() user: JwtPayload,
   }
 }
