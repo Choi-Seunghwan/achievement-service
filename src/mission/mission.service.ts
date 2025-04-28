@@ -55,6 +55,7 @@ export class MissionService {
     data: {
       name: string;
       description?: string;
+      icon?: string;
       tasks?: { name: string }[];
       tagIds?: number[];
       repeatType?: MissionRepeatType;
@@ -68,6 +69,7 @@ export class MissionService {
         description: data.description,
         repeatType: data.repeatType,
         repeatDays: data.repeatDays,
+        icon: data.icon,
         ...(data.tasks?.length
           ? {
               missionTasks: {

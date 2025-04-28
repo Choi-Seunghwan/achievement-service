@@ -10,6 +10,10 @@ export class CreateMissionDto {
   @IsOptional()
   description?: string;
 
+  @IsString()
+  @IsOptional()
+  icon?: string;
+
   @IsOptional()
   @IsArray()
   tasks?: CreateMissionTaskDto[];
