@@ -36,12 +36,13 @@ enum MissionRepeatDay {
 }
 
 model Mission {
-  id          Int           @id @default(autoincrement())
-  accountId   Int           @map("account_id")
-  name        String
-  description String?
-  status      MissionStatus @default(IN_PROGRESS)
-  icon        String?
+  id            Int           @id @default(autoincrement())
+  accountId     Int           @map("account_id")
+  achievementId Int?          @map("achievement_id")
+  name          String
+  description   String?
+  status        MissionStatus @default(IN_PROGRESS)
+  icon          String?
 
   repeatType MissionRepeatType  @map("repeat_type")
   repeatDays MissionRepeatDay[] @map("repeat_days")
@@ -52,14 +53,14 @@ model Mission {
   // progress    Int?      @default(0)
   // progressMax Int?      @default(100)
 
-  achievementId Int?          @map("achievement_id")
-  achievement   Achievement?  @relation(fields: [achievementId], references: [id])
-  missionTasks  MissionTask[]
-  MissionTag    MissionTag[]
-
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
+
+  achievement    Achievement?     @relation(fields: [achievementId], references: [id])
+  missionTasks   MissionTask[]
+  missionTags    MissionTag[]
+  missionHistory MissionHistory[]
 
   @@map("mission")
 }
@@ -74,7 +75,7 @@ model MissionTask {
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  Mission Mission @relation(fields: [missionId], references: [id])
+  mission Mission @relation(fields: [missionId], references: [id])
 
   @@map("mission_task")
 }
@@ -87,6 +88,8 @@ model MissionHistory {
 
   createdAt DateTime @default(now()) @map("created_at")
 
+  mission Mission @relation(fields: [missionId], references: [id])
+
   @@map("mission_histories")
 }
 
@@ -94,6 +97,7 @@ model Achievement {
   id          Int     @id @default(autoincrement())
   accountId   Int     @map("account_id")
   name        String
+  icon        String?
   description String?
 
   missions Mission[]
