@@ -17,4 +17,12 @@ export class TagRepository {
   async getTags(args: Prisma.TagFindManyArgs) {
     return await this.prisma.tag.findMany(args);
   }
+
+  async getTag(args: Prisma.TagFindUniqueArgs) {
+    return await this.prisma.tag.findUnique(args);
+  }
+
+  async updateTag(args: Prisma.TagUpdateArgs) {
+    return await this.prisma.tag.update(args);
+  }
 }

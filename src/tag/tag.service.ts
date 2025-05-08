@@ -29,4 +29,19 @@ export class TagService {
 
     return true;
   }
+
+  async deleteTag(accountId: number, tagId: number) {
+    const tag = await this.tagRepository.getTag({
+      where: { id: tagId, accountId, deletedAt: null },
+    });
+
+    if (!tag) throw new Error('tag not found');
+
+    await this.tagRepository.updateTag({
+      where: { id: tagId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    return true;
+  }
 }
