@@ -1,8 +1,17 @@
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { Response } from '@choi-seunghwan/api-util';
 import { TagService } from './tag.service';
+import { TagIdParam } from './dto/tag-id.param';
 
 @Controller('tags')
 export class TagController {
@@ -29,8 +38,8 @@ export class TagController {
 
   @Delete('/:tagId')
   @UseGuards(AuthGuard)
-  async deleteTag(@User() user: JwtPayload, @Body('tagId') tagId: number) {
-    const result = await this.tagService.deleteTag(user.accountId, tagId);
+  async deleteTag(@User() user: JwtPayload, @Param() param: TagIdParam) {
+    const result = await this.tagService.deleteTag(user.accountId, param.tagId);
 
     return Response.of(result);
   }
