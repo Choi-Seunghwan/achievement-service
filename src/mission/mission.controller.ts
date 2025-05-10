@@ -17,7 +17,7 @@ import { CreateMissionDto } from './dto/create-mission.dto';
 import { MissionIdParam } from './dto/mission-id.param';
 import { UpdateMissionDto } from './dto/update-mission.dto';
 import { TaskIdParam } from './dto/task-id.param';
-import { CreateMissionTaskDto } from './dto/create-mission-task.dto';
+// import { CreateMissionTaskDto } from './dto/create-mission-task.dto';
 
 @Controller('missions')
 export class MissionController {
@@ -40,6 +40,13 @@ export class MissionController {
       query.page,
       query.size,
     );
+  }
+
+  @Get('/active')
+  @UseGuards(AuthGuard)
+  async getActiveMissions(@User() user: JwtPayload) {
+    const result = await this.missionService.getActiveMissions(user.accountId);
+    return Response.of(result);
   }
 
   @Post('/')
@@ -122,12 +129,12 @@ export class MissionController {
   async createTask(
     @User() user: JwtPayload,
     @Param() missionIdParam: MissionIdParam,
-    @Body() dto: CreateMissionTaskDto,
+    // @Body() dto: CreateMissionTaskDto,
   ) {
     const result = await this.missionService.createMissionTask(
       user.accountId,
       missionIdParam.missionId,
-      { name: dto.name },
+      // { name: dto.name },
     );
 
     return Response.of(result);

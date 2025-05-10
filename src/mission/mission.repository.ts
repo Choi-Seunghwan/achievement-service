@@ -19,11 +19,22 @@ export class MissionRepository {
       skip: (paging.page - 1) * paging.size,
       take: paging.size,
       where: { ...args.where, deletedAt: null },
-      orderBy: { ...args.orderBy, createdAt: 'desc' },
+      include: { ...args.include },
+      orderBy: { createdAt: 'desc', ...args.orderBy },
       omit: { ...args.omit, deletedAt: true },
     });
 
     return { total, items };
+  }
+
+  async getMissions(args: Prisma.MissionFindManyArgs) {
+    return await this.prisma.mission.findMany({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+      include: { ...args.include },
+      orderBy: { createdAt: 'desc', ...args.orderBy },
+      omit: { ...args.omit, deletedAt: true },
+    });
   }
 
   async getMission(args: Prisma.MissionFindUniqueArgs) {
@@ -40,5 +51,26 @@ export class MissionRepository {
 
   async updateMission(args: Prisma.MissionUpdateArgs) {
     return await this.prisma.mission.update(args);
+  }
+
+  async createMissionHistory(args: Prisma.MissionHistoryCreateArgs) {
+    return await this.prisma.missionHistory.create(args);
+  }
+
+  async findTodayMissionHistories(accountId: number, todayStart: Date) {
+    return this.prisma.missionHistory.findMany({
+      where: {
+        completed: true,
+        createdAt: { gte: todayStart },
+
+        mission: {
+          accountId,
+          deletedAt: null,
+        },
+      },
+      select: {
+        missionId: true,
+      },
+    });
   }
 }

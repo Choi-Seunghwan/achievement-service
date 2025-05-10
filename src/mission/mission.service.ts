@@ -10,10 +10,50 @@ import {
   MissionStatus,
 } from '@prisma/client';
 import { MISSION_TASK_MAX_COUNT } from './constants/mission.constant';
+import { weekdayMap } from './utils/weekdayMap';
 
 @Injectable()
 export class MissionService {
   constructor(private readonly missionRepository: MissionRepository) {}
+
+  async getActiveMissions(accountId: number) {
+    const missions = await this.missionRepository.getMissions({
+      where: { accountId, status: 'IN_PROGRESS' },
+    });
+
+    const today = new Date();
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const todayWeekdayEnum = weekdayMap[today.getDay()];
+
+    const todayHistories =
+      await this.missionRepository.findTodayMissionHistories(
+        accountId,
+        todayStart,
+      );
+
+    const activeMissions = missions.map((mission) => {
+      const isTodayMission =
+        mission.repeatType === 'DAILY' ||
+        (mission.repeatType === 'WEEKLY' &&
+          mission.repeatDays.includes(todayWeekdayEnum));
+
+      const isCompletedToday = todayHistories.some(
+        (h) => h.missionId === mission.id,
+      );
+
+      return {
+        ...mission,
+        isTodayMission,
+        isCompletedToday,
+      };
+    });
+
+    return activeMissions;
+  }
 
   /**
    * 사용자 미션 목록 가져오기
@@ -23,7 +63,13 @@ export class MissionService {
     paging: { page: number; size: number },
   ) {
     return await this.missionRepository.getMissionsWithPaging(
-      { where: { accountId: args.accountId, status: args.status } },
+      {
+        where: { accountId: args.accountId, status: args.status },
+        include: {
+          missionTasks: true,
+          missionTags: { include: { tag: true } },
+        },
+      },
       paging,
     );
   }
@@ -81,7 +127,7 @@ export class MissionService {
           : {}),
         ...(data.tagIds?.length
           ? {
-              MissionTag: {
+              missionTags: {
                 createMany: {
                   data: data.tagIds.map((tagId) => ({ tagId })),
                 },
@@ -89,6 +135,28 @@ export class MissionService {
             }
           : {}),
       },
+    });
+
+    return true;
+  }
+
+  /**
+   * 반복 미션 종결(완료)
+   */
+  async completeRecurringMission(accountId: number, missionId: number) {
+    const mission = await this.getMission(accountId, missionId);
+
+    if (mission.repeatType === MissionRepeatType.NONE) {
+      throw new BadRequestException('cannot complete recurring mission');
+    }
+
+    if (mission.status === MissionStatus.COMPLETED) {
+      throw new BadRequestException('already completed');
+    }
+
+    await this.missionRepository.updateMission({
+      where: { id: missionId, accountId },
+      data: { status: MissionStatus.COMPLETED },
     });
 
     return true;
@@ -114,9 +182,30 @@ export class MissionService {
    * 미션 완료
    */
   async completeMission(accountId: number, missionId: number) {
-    await this.missionRepository.updateMission({
-      where: { id: missionId, accountId },
-      data: { status: MissionStatus.COMPLETED },
+    const mission = await this.getMission(accountId, missionId);
+
+    if (mission.status === MissionStatus.COMPLETED)
+      throw new BadRequestException('already completed');
+
+    switch (mission.repeatType) {
+      case MissionRepeatType.NONE: {
+        await this.missionRepository.updateMission({
+          where: { id: missionId, accountId },
+          data: { status: MissionStatus.COMPLETED },
+        });
+        break;
+      }
+      case MissionRepeatType.DAILY:
+      case MissionRepeatType.WEEKLY: {
+        break;
+      }
+    }
+
+    await this.missionRepository.createMissionHistory({
+      data: {
+        completed: true,
+        missionId,
+      },
     });
 
     return true;
@@ -140,7 +229,7 @@ export class MissionService {
   async createMissionTask(
     accountId: number,
     missionId: number,
-    data: { name: string },
+    // data: { name: string },
   ) {
     const mission = await this.getMission(accountId, missionId);
 
@@ -149,15 +238,15 @@ export class MissionService {
         `max task count error, max: ${MISSION_TASK_MAX_COUNT}, current: ${mission.missionTasks.length}`,
       );
 
-    const newTaskId = Math.max(
-      ...mission.missionTasks.map((task) => Number(task.id)),
-    );
+    // const newTaskId = Math.max(
+    //   ...mission.missionTasks.map((task) => Number(task.id)),
+    // );
 
-    const newTask = {
-      id: newTaskId,
-      name: data.name,
-      complete: false,
-    };
+    // const newTask = {
+    //   id: newTaskId,
+    //   name: data.name,
+    //   complete: false,
+    // };
 
     // await this.missionRepository.updateMission({
     //   where: {
@@ -186,15 +275,15 @@ export class MissionService {
 
     if (!task) throw new NotFoundException('task not found');
 
-    const newTasks = mission.missionTasks.map((task) => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          complete: true,
-        };
-      }
-      return task;
-    });
+    // const newTasks = mission.missionTasks.map((task) => {
+    //   if (task.id === taskId) {
+    //     return {
+    //       ...task,
+    //       complete: true,
+    //     };
+    //   }
+    //   return task;
+    // });
 
     await this.missionRepository.updateMission({
       where: {
