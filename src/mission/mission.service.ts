@@ -16,9 +16,12 @@ import { weekdayMap } from './utils/weekdayMap';
 export class MissionService {
   constructor(private readonly missionRepository: MissionRepository) {}
 
+  /**
+   * 사용자 활성 미션 목록 가져오기
+   */
   async getActiveMissions(accountId: number) {
     const missions = await this.missionRepository.getMissions({
-      where: { accountId, status: 'IN_PROGRESS' },
+      where: { accountId, status: MissionStatus.IN_PROGRESS },
     });
 
     const today = new Date();
@@ -35,24 +38,40 @@ export class MissionService {
         todayStart,
       );
 
-    const activeMissions = missions.map((mission) => {
-      const isTodayMission =
-        mission.repeatType === 'DAILY' ||
-        (mission.repeatType === 'WEEKLY' &&
-          mission.repeatDays.includes(todayWeekdayEnum));
+    const todayMissions = [];
+    const todayCompletedMissions = [];
+    const upcomingMissions = [];
+    const oneTimeMissions = [];
 
+    for (const mission of missions) {
       const isCompletedToday = todayHistories.some(
         (h) => h.missionId === mission.id,
       );
 
-      return {
-        ...mission,
-        isTodayMission,
-        isCompletedToday,
-      };
-    });
+      const isDaily = mission.repeatType === MissionRepeatType.DAILY;
+      const isWeekly = mission.repeatType === MissionRepeatType.WEEKLY;
+      const isNone = mission.repeatType === MissionRepeatType.NONE;
 
-    return activeMissions;
+      const isTodayMission =
+        isDaily || (isWeekly && mission.repeatDays.includes(todayWeekdayEnum));
+
+      const isUpcoming =
+        isWeekly && !mission.repeatDays.includes(todayWeekdayEnum);
+
+      if (isNone) oneTimeMissions.push({ ...mission });
+      else if (isTodayMission && !isCompletedToday)
+        todayMissions.push({ ...mission });
+      else if (isTodayMission && isCompletedToday)
+        todayCompletedMissions.push({ ...mission });
+      else if (isUpcoming) upcomingMissions.push({ ...mission });
+    }
+
+    return {
+      oneTimeMissions,
+      todayMissions,
+      todayCompletedMissions,
+      upcomingMissions,
+    };
   }
 
   /**

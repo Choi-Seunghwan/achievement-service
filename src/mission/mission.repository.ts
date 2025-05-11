@@ -31,7 +31,11 @@ export class MissionRepository {
     return await this.prisma.mission.findMany({
       ...args,
       where: { ...args.where, deletedAt: null },
-      include: { ...args.include },
+      include: {
+        missionTasks: true,
+        missionTags: { include: { tag: true } },
+        ...args.include,
+      },
       orderBy: { createdAt: 'desc', ...args.orderBy },
       omit: { ...args.omit, deletedAt: true },
     });
@@ -41,7 +45,12 @@ export class MissionRepository {
     return await this.prisma.mission.findUnique({
       ...args,
       where: { ...args.where, deletedAt: null },
-      include: { ...args.include },
+      include: {
+        missionTasks: true,
+        missionTags: { include: { tag: true } },
+        ...args.include,
+      },
+      omit: { ...args.omit, deletedAt: true },
     });
   }
 
