@@ -27,6 +27,10 @@ export class MissionService {
   async getActiveMissions(
     accountId: number,
   ): Promise<ActiveMissionsResponseDto> {
+    const todayStart = startOfDay(new Date());
+    const todayWeekdayEnum = weekdayMap[todayStart.getDay()];
+
+    // 오늘 기준 미션 조회
     const missions = await this.missionRepository.getMissions({
       where: {
         OR: [
@@ -39,8 +43,7 @@ export class MissionService {
             status: MissionStatus.COMPLETED,
             missionHistory: {
               some: {
-                completed: true,
-                createdAt: { gte: startOfDay(new Date()) },
+                createdAt: { gte: todayStart },
               },
             },
           },
@@ -48,47 +51,56 @@ export class MissionService {
       },
     });
 
-    const todayStart = startOfDay(new Date());
-    const todayWeekdayEnum = weekdayMap[todayStart.getDay()];
-
+    // 오늘 히스토리 전체 가져오기 (최신 기록이 먼저)
     const todayHistories =
       await this.missionRepository.findTodayMissionHistories(
         accountId,
         todayStart,
       );
 
-    const taskTodayMap: Record<number, boolean> = {};
-    todayHistories.forEach((h) => {
-      if (h.taskId != null) {
-        taskTodayMap[h.taskId] = h.completed;
-      }
-    });
+    // 오늘 완료 여부 매핑: missionId → completed
+    const missionTodayMap = new Map<number, boolean>();
+    const taskTodayMap = new Map<number, boolean>();
 
+    for (const h of todayHistories) {
+      if (h.taskId === null && !missionTodayMap.has(h.missionId)) {
+        missionTodayMap.set(h.missionId, h.completed);
+      } else if (h.taskId !== null && !taskTodayMap.has(h.taskId)) {
+        taskTodayMap.set(h.taskId, h.completed);
+      }
+    }
+
+    // MissionView 생성
     const missionViews: MissionView[] = missions.map((mission) => ({
       ...mission,
       missionTasks: mission.missionTasks.map((task) =>
-        toMissionTaskView(task, taskTodayMap[task.id] ?? false),
+        toMissionTaskView(task, taskTodayMap.get(task.id) ?? false),
       ),
+      todayCompleted: missionTodayMap.get(mission.id) ?? false,
     }));
 
-    const oneTimeMissions = missionViews.filter((m) => m.repeatType === 'NONE');
+    // 분류
+    const oneTimeMissions = missionViews.filter(
+      (m) => m.repeatType === 'NONE' && !m.todayCompleted,
+    );
 
     const todayMissions = missionViews.filter((m) => {
       const isDaily = m.repeatType === 'DAILY';
       const isWeekly = m.repeatType === 'WEEKLY';
-      return (
-        (isDaily || (isWeekly && m.repeatDays.includes(todayWeekdayEnum))) &&
-        !todayHistories.some((h) => h.missionId === m.id && h.taskId === null)
-      );
+      const isToday =
+        isDaily || (isWeekly && m.repeatDays.includes(todayWeekdayEnum));
+      return isToday && !m.todayCompleted;
     });
 
-    const todayCompletedMissions = missionViews.filter((m) =>
-      todayHistories.some((h) => h.missionId === m.id && h.taskId === null),
+    const todayCompletedMissions = missionViews.filter(
+      (m) => m.todayCompleted === true,
     );
 
     const upcomingMissions = missionViews.filter(
       (m) =>
-        m.repeatType === 'WEEKLY' && !m.repeatDays.includes(todayWeekdayEnum),
+        m.repeatType === 'WEEKLY' &&
+        !m.repeatDays.includes(todayWeekdayEnum) &&
+        !m.todayCompleted,
     );
 
     return {
@@ -258,7 +270,8 @@ export class MissionService {
           );
 
         const missionHistory = histories.find(
-          (history) => history.missionId === mission.id,
+          (history) =>
+            history.missionId === mission.id && history.taskId === null,
         );
 
         if (missionHistory && missionHistory.completed)
