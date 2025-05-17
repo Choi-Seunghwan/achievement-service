@@ -69,17 +69,31 @@ export class MissionRepository {
   async findTodayMissionHistories(accountId: number, todayStart: Date) {
     return this.prisma.missionHistory.findMany({
       where: {
-        completed: true,
-        createdAt: { gte: todayStart },
-
         mission: {
           accountId,
           deletedAt: null,
         },
+        createdAt: { gte: todayStart },
       },
-      select: {
-        missionId: true,
-      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getMissionHistories(args: Prisma.MissionHistoryFindManyArgs) {
+    return await this.prisma.missionHistory.findMany({
+      ...args,
+      where: { ...args.where },
+    });
+  }
+
+  async getMissionHistory(args: Prisma.MissionHistoryFindFirstArgs) {
+    return await this.prisma.missionHistory.findFirst(args);
+  }
+
+  async updateMissionTask(taskId: number, data: Prisma.MissionTaskUpdateInput) {
+    return await this.prisma.missionTask.update({
+      where: { id: taskId, deletedAt: null },
+      data,
     });
   }
 }

@@ -124,7 +124,7 @@ export class MissionController {
 
   /** Mission Task */
 
-  @Post('/:missionId/task')
+  @Post('/:missionId/tasks')
   @UseGuards(AuthGuard)
   async createTask(
     @User() user: JwtPayload,
@@ -140,7 +140,7 @@ export class MissionController {
     return Response.of(result);
   }
 
-  @Post('/:missionId/task/:taskId/complete')
+  @Post('/:missionId/tasks/:taskId/complete')
   @UseGuards(AuthGuard)
   async completeTask(
     @User() user: JwtPayload,
@@ -156,14 +156,14 @@ export class MissionController {
     return Response.of(result);
   }
 
-  @Post('/:missionId/task/:taskId/update')
+  @Post('/:missionId/tasks/:taskId/update')
   @UseGuards(AuthGuard)
   async updateTask() {
     // @Body() dto: any, // @Param() taskId: TaskIdParam, // @Param() param: MissionIdParam, // @User() user: JwtPayload,
     //
   }
 
-  @Post('/:missionId/task/order')
+  @Post('/:missionId/tasks/order')
   @UseGuards(AuthGuard)
   async updateTaskOrder() {
     // @Param() missionId: MissionIdParam, // @User() user: JwtPayload,

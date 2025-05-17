@@ -8,9 +8,14 @@ import {
   MissionRepeatDay,
   MissionRepeatType,
   MissionStatus,
+  MissionTaskStatus,
 } from '@prisma/client';
 import { MISSION_TASK_MAX_COUNT } from './constants/mission.constant';
 import { weekdayMap } from './utils/weekdayMap';
+import { startOfDay } from 'date-fns';
+import { ActiveMissionsResponseDto } from './dto/active-missions-response.dto';
+import { toMissionTaskView } from './utils/toMissionTaskView';
+import { MissionView } from './view/mission-view';
 
 @Injectable()
 export class MissionService {
@@ -19,18 +24,32 @@ export class MissionService {
   /**
    * 사용자 활성 미션 목록 가져오기
    */
-  async getActiveMissions(accountId: number) {
+  async getActiveMissions(
+    accountId: number,
+  ): Promise<ActiveMissionsResponseDto> {
     const missions = await this.missionRepository.getMissions({
-      where: { accountId, status: MissionStatus.IN_PROGRESS },
+      where: {
+        OR: [
+          {
+            accountId,
+            status: MissionStatus.IN_PROGRESS,
+          },
+          {
+            accountId,
+            status: MissionStatus.COMPLETED,
+            missionHistory: {
+              some: {
+                completed: true,
+                createdAt: { gte: startOfDay(new Date()) },
+              },
+            },
+          },
+        ],
+      },
     });
 
-    const today = new Date();
-    const todayStart = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const todayWeekdayEnum = weekdayMap[today.getDay()];
+    const todayStart = startOfDay(new Date());
+    const todayWeekdayEnum = weekdayMap[todayStart.getDay()];
 
     const todayHistories =
       await this.missionRepository.findTodayMissionHistories(
@@ -38,33 +57,39 @@ export class MissionService {
         todayStart,
       );
 
-    const todayMissions = [];
-    const todayCompletedMissions = [];
-    const upcomingMissions = [];
-    const oneTimeMissions = [];
+    const taskTodayMap: Record<number, boolean> = {};
+    todayHistories.forEach((h) => {
+      if (h.taskId != null) {
+        taskTodayMap[h.taskId] = h.completed;
+      }
+    });
 
-    for (const mission of missions) {
-      const isCompletedToday = todayHistories.some(
-        (h) => h.missionId === mission.id,
+    const missionViews: MissionView[] = missions.map((mission) => ({
+      ...mission,
+      missionTasks: mission.missionTasks.map((task) =>
+        toMissionTaskView(task, taskTodayMap[task.id] ?? false),
+      ),
+    }));
+
+    const oneTimeMissions = missionViews.filter((m) => m.repeatType === 'NONE');
+
+    const todayMissions = missionViews.filter((m) => {
+      const isDaily = m.repeatType === 'DAILY';
+      const isWeekly = m.repeatType === 'WEEKLY';
+      return (
+        (isDaily || (isWeekly && m.repeatDays.includes(todayWeekdayEnum))) &&
+        !todayHistories.some((h) => h.missionId === m.id && h.taskId === null)
       );
+    });
 
-      const isDaily = mission.repeatType === MissionRepeatType.DAILY;
-      const isWeekly = mission.repeatType === MissionRepeatType.WEEKLY;
-      const isNone = mission.repeatType === MissionRepeatType.NONE;
+    const todayCompletedMissions = missionViews.filter((m) =>
+      todayHistories.some((h) => h.missionId === m.id && h.taskId === null),
+    );
 
-      const isTodayMission =
-        isDaily || (isWeekly && mission.repeatDays.includes(todayWeekdayEnum));
-
-      const isUpcoming =
-        isWeekly && !mission.repeatDays.includes(todayWeekdayEnum);
-
-      if (isNone) oneTimeMissions.push({ ...mission });
-      else if (isTodayMission && !isCompletedToday)
-        todayMissions.push({ ...mission });
-      else if (isTodayMission && isCompletedToday)
-        todayCompletedMissions.push({ ...mission });
-      else if (isUpcoming) upcomingMissions.push({ ...mission });
-    }
+    const upcomingMissions = missionViews.filter(
+      (m) =>
+        m.repeatType === 'WEEKLY' && !m.repeatDays.includes(todayWeekdayEnum),
+    );
 
     return {
       oneTimeMissions,
@@ -198,7 +223,7 @@ export class MissionService {
   }
 
   /**
-   * 미션 완료
+   * 미션 완료, 반복 미션 오늘 완료
    */
   async completeMission(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
@@ -208,6 +233,16 @@ export class MissionService {
 
     switch (mission.repeatType) {
       case MissionRepeatType.NONE: {
+        if (
+          mission.missionTasks.length > 0 &&
+          !mission.missionTasks.every(
+            (task) => task.status === MissionTaskStatus.COMPLETED,
+          )
+        )
+          throw new BadRequestException(
+            `mission task not completed. taskId: ${mission.missionTasks[0].id}`,
+          );
+
         await this.missionRepository.updateMission({
           where: { id: missionId, accountId },
           data: { status: MissionStatus.COMPLETED },
@@ -216,6 +251,32 @@ export class MissionService {
       }
       case MissionRepeatType.DAILY:
       case MissionRepeatType.WEEKLY: {
+        const histories =
+          await this.missionRepository.findTodayMissionHistories(
+            accountId,
+            startOfDay(new Date()),
+          );
+
+        const missionHistory = histories.find(
+          (history) => history.missionId === mission.id,
+        );
+
+        if (missionHistory && missionHistory.completed)
+          throw new BadRequestException('today already mission completed');
+
+        if (mission.missionTasks.length > 0) {
+          mission.missionTasks.map((task) => {
+            const taskHistory = histories.find(
+              (history) => history.taskId === task.id,
+            );
+
+            if (!taskHistory || !taskHistory.completed)
+              throw new BadRequestException(
+                `mission task not completed. taskId: ${task.id}`,
+              );
+          });
+        }
+
         break;
       }
     }
@@ -294,24 +355,47 @@ export class MissionService {
 
     if (!task) throw new NotFoundException('task not found');
 
-    // const newTasks = mission.missionTasks.map((task) => {
-    //   if (task.id === taskId) {
-    //     return {
-    //       ...task,
-    //       complete: true,
-    //     };
-    //   }
-    //   return task;
-    // });
+    if (
+      task.status === MissionTaskStatus.COMPLETED ||
+      mission.status === MissionStatus.COMPLETED
+    )
+      throw new BadRequestException('already completed');
 
-    await this.missionRepository.updateMission({
+    const todayHistories = await this.missionRepository.getMissionHistories({
       where: {
-        id: missionId,
-        accountId,
-        deletedAt: null,
+        missionId,
+        taskId,
+        createdAt: {
+          gte: startOfDay(new Date()),
+        },
       },
+    });
+
+    if (todayHistories?.[0]?.completed)
+      throw new BadRequestException('today already completed');
+
+    switch (mission.repeatType) {
+      case MissionRepeatType.NONE: {
+        await this.missionRepository.updateMissionTask(taskId, {
+          status: MissionTaskStatus.COMPLETED,
+        });
+        break;
+      }
+      case MissionRepeatType.DAILY:
+      case MissionRepeatType.WEEKLY: {
+        break;
+      }
+    }
+
+    await this.missionRepository.createMissionHistory({
       data: {
-        // missionTasks: newTasks,
+        completed: true,
+        missionId,
+        taskId,
+        taskSnapshot: {
+          id: task.id,
+          name: task.name,
+        },
       },
     });
 
