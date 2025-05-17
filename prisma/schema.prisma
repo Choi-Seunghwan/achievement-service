@@ -81,10 +81,11 @@ model MissionTask {
 }
 
 model MissionHistory {
-  id        Int     @id @default(autoincrement())
-  missionId Int     @map("mission_id")
-  taskId    Int?    @map("task_id")
-  completed Boolean
+  id           Int     @id @default(autoincrement())
+  missionId    Int     @map("mission_id")
+  taskId       Int?    @map("task_id")
+  completed    Boolean
+  taskSnapshot Json? // 기록 당시 정보
 
   createdAt DateTime @default(now()) @map("created_at")
 
