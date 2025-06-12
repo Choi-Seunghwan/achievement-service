@@ -1,4 +1,10 @@
 import { Module } from '@nestjs/common';
+import { AchievementController } from './achievement.controller';
+import { AchievementService } from './achievement.service';
+import { AchievementRepository } from './achievement.repository';
 
-@Module({})
+@Module({
+  controllers: [AchievementController],
+  providers: [AchievementService, AchievementRepository],
+})
 export class AchievementModule {}

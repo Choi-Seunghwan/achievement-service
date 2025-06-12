@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AchievementRepository } from './achievement.repository';
+import { AchievementStatus } from '@prisma/client';
 
 @Injectable()
 export class AchievementService {
@@ -25,5 +26,17 @@ export class AchievementService {
         icon: data.icon,
       },
     });
+  }
+
+  async getUserAchievements(
+    accountId: number,
+    paging: { page: number; size: number },
+    status: AchievementStatus,
+  ) {
+    return await this.achievementRepository.getUserAchievementsWithPaging(
+      accountId,
+      status,
+      paging,
+    );
   }
 }

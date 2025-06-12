@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './database/prisma.service';
 import { MissionModule } from './mission/mission.module';
 import { TagModule } from './tag/tag.module';
+import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TagModule } from './tag/tag.module';
     AuthorizationModule.forRoot({ jwtSecret: process.env.JWT_SECRET }),
     MissionModule,
     TagModule,
+    AchievementModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

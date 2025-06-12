@@ -17,7 +17,6 @@ import { CreateMissionDto } from './dto/create-mission.dto';
 import { MissionIdParam } from './dto/mission-id.param';
 import { UpdateMissionDto } from './dto/update-mission.dto';
 import { TaskIdParam } from './dto/task-id.param';
-// import { CreateMissionTaskDto } from './dto/create-mission-task.dto';
 
 @Controller('missions')
 export class MissionController {
@@ -62,6 +61,15 @@ export class MissionController {
       tagIds: dto.tagIds,
     });
 
+    return Response.of(result);
+  }
+
+  @Get('available-for-achievement')
+  @UseGuards(AuthGuard)
+  async getAvailableMissionsForAchievement(@User() user: JwtPayload) {
+    const result = await this.missionService.getAvailableMissionsForAchievement(
+      user.accountId,
+    );
     return Response.of(result);
   }
 

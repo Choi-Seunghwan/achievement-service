@@ -34,6 +34,7 @@ export class MissionRepository {
       include: {
         missionTasks: true,
         missionTags: { include: { tag: true } },
+        achievement: true,
         ...args.include,
       },
       orderBy: { createdAt: 'desc', ...args.orderBy },

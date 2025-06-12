@@ -130,6 +130,12 @@ export class MissionService {
     );
   }
 
+  async getMissions(accountId: number) {
+    return await this.missionRepository.getMissions({
+      where: { accountId },
+    });
+  }
+
   /**
    *  사용자 미션 가져오기
    */
@@ -399,5 +405,15 @@ export class MissionService {
     });
 
     return true;
+  }
+
+  async getAvailableMissionsForAchievement(accountId: number) {
+    return await this.missionRepository.getMissions({
+      where: {
+        accountId,
+        status: MissionStatus.IN_PROGRESS,
+        achievement: null,
+      },
+    });
   }
 }
