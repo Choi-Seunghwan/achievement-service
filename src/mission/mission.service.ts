@@ -316,6 +316,68 @@ export class MissionService {
   }
 
   /**
+   * 미션 완료 취소
+   */
+  async cancelMissionCompletion(accountId: number, missionId: number) {
+    const mission = await this.getMission(accountId, missionId);
+
+    switch (mission.repeatType) {
+      case MissionRepeatType.NONE: {
+        if (mission.status !== MissionStatus.COMPLETED)
+          throw new BadRequestException('mission not completed');
+
+        await this.missionRepository.updateMission({
+          where: { id: missionId, accountId },
+          data: { status: MissionStatus.IN_PROGRESS },
+        });
+
+        await this.missionRepository.createMissionHistory({
+          data: {
+            completed: false,
+            missionId,
+          },
+        });
+
+        break;
+      }
+
+      case MissionRepeatType.DAILY:
+      case MissionRepeatType.WEEKLY: {
+        const todayCompletedHistory =
+          await this.missionRepository.getMissionHistory({
+            where: {
+              missionId,
+              taskId: null,
+              createdAt: {
+                gte: startOfDay(new Date()),
+              },
+            },
+          });
+
+        if (!todayCompletedHistory || !todayCompletedHistory.completed)
+          throw new BadRequestException('today mission not completed');
+
+        await this.missionRepository.updateMission({
+          where: { id: missionId, accountId },
+          data: { status: MissionStatus.IN_PROGRESS },
+        });
+
+        await this.missionRepository.createMissionHistory({
+          data: {
+            completed: false,
+            missionId,
+            taskId: null,
+          },
+        });
+
+        break;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * 미션 삭제
    */
   async deleteMission(accountId: number, missionId: number) {

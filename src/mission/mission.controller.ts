@@ -105,6 +105,20 @@ export class MissionController {
     return Response.of(result);
   }
 
+  @Post('/:missionId/cancel-completion')
+  @UseGuards(AuthGuard)
+  async cancelMissionCompletion(
+    @User() user: JwtPayload,
+    @Param() param: MissionIdParam,
+  ) {
+    const result = await this.missionService.cancelMissionCompletion(
+      user.accountId,
+      param.missionId,
+    );
+
+    return Response.of(result);
+  }
+
   @Delete(':missionId/delete')
   @UseGuards(AuthGuard)
   async deleteMission(
