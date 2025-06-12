@@ -35,6 +35,11 @@ enum MissionRepeatDay {
   SAT
 }
 
+enum AchievementStatus {
+  IN_PROGRESS // 진행 중
+  COMPLETED // 완료
+}
+
 model Mission {
   id            Int           @id @default(autoincrement())
   accountId     Int           @map("account_id")
@@ -95,9 +100,10 @@ model MissionHistory {
 }
 
 model Achievement {
-  id          Int     @id @default(autoincrement())
-  accountId   Int     @map("account_id")
+  id          Int               @id @default(autoincrement())
+  accountId   Int               @map("account_id")
   name        String
+  status      AchievementStatus @default(IN_PROGRESS)
   icon        String?
   description String?
 
