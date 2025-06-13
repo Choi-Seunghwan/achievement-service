@@ -86,6 +86,11 @@ export class MissionController {
       {
         name: dto.name,
         description: dto.description,
+        icon: dto.icon,
+        repeatType: dto.repeatType,
+        repeatDays: dto.repeatDays,
+        tasks: dto.tasks,
+        tagIds: dto.tagIds,
       },
     );
     return Response.of(result);
@@ -98,6 +103,20 @@ export class MissionController {
     @Param() param: MissionIdParam,
   ) {
     const result = await this.missionService.completeMission(
+      user.accountId,
+      param.missionId,
+    );
+
+    return Response.of(result);
+  }
+
+  @Post('/:missionId/close-repeat-mission')
+  @UseGuards(AuthGuard)
+  async closeRepeatMission(
+    @User() user: JwtPayload,
+    @Param() param: MissionIdParam,
+  ) {
+    const result = await this.missionService.closeRepeatMission(
       user.accountId,
       param.missionId,
     );
@@ -135,10 +154,10 @@ export class MissionController {
 
   @Get('/:missionId')
   @UseGuards(AuthGuard)
-  async getMission(@User() user: JwtPayload, @Query() query: MissionIdParam) {
+  async getMission(@User() user: JwtPayload, @Param() param: MissionIdParam) {
     const result = await this.missionService.getMission(
       user.accountId,
-      query.missionId,
+      param.missionId,
     );
 
     return Response.of(result);

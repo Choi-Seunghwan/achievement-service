@@ -1,5 +1,6 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
-import { MissionTaskDto } from './mission-task-dto';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { CreateMissionTaskDto } from './create-mission-task.dto';
+import { MissionRepeatDay, MissionRepeatType } from '@prisma/client';
 
 export class UpdateMissionDto {
   @IsOptional()
@@ -10,7 +11,23 @@ export class UpdateMissionDto {
   @IsOptional()
   description?: string;
 
+  @IsString()
+  @IsOptional()
+  icon?: string;
+
   @IsOptional()
   @IsArray()
-  tasks?: MissionTaskDto[];
+  tasks?: CreateMissionTaskDto[];
+
+  @IsOptional()
+  @IsEnum(MissionRepeatType)
+  repeatType?: MissionRepeatType;
+
+  @IsOptional()
+  @IsArray()
+  repeatDays?: MissionRepeatDay[];
+
+  @IsOptional()
+  @IsArray()
+  tagIds?: number[];
 }

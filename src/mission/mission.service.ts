@@ -142,9 +142,6 @@ export class MissionService {
   async getMission(accountId: number, missionId: number) {
     const mission = await this.missionRepository.getMission({
       where: { id: missionId, accountId },
-      include: {
-        missionTasks: true,
-      },
     });
 
     if (!mission)
@@ -230,7 +227,15 @@ export class MissionService {
   async updateMission(
     accountId: number,
     missionId: number,
-    data: { name?: string; description?: string },
+    data: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      tasks?: { name: string }[];
+      tagIds?: number[];
+      repeatType?: MissionRepeatType;
+      repeatDays?: MissionRepeatDay[];
+    },
   ) {
     await this.getMission(accountId, missionId);
 
@@ -373,6 +378,26 @@ export class MissionService {
         break;
       }
     }
+
+    return true;
+  }
+
+  /**
+   * 반복 미션 종결
+   */
+  async closeRepeatMission(accountId: number, missionId: number) {
+    const mission = await this.getMission(accountId, missionId);
+
+    if (mission.repeatType === MissionRepeatType.NONE)
+      throw new BadRequestException('cannot close repeat mission');
+
+    if (mission.status === MissionStatus.COMPLETED)
+      throw new BadRequestException('already completed');
+
+    await this.missionRepository.updateMission({
+      where: { id: missionId, accountId },
+      data: { status: MissionStatus.COMPLETED },
+    });
 
     return true;
   }
