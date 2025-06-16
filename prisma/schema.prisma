@@ -136,6 +136,10 @@ model MissionTag {
   missionId Int @map("mission_id")
   tagId     Int @map("tag_id")
 
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
   mission Mission @relation(fields: [missionId], references: [id])
   tag     Tag     @relation(fields: [tagId], references: [id])
 
