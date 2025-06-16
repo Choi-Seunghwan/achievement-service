@@ -92,10 +92,18 @@ export class MissionRepository {
     return await this.prisma.missionHistory.findFirst(args);
   }
 
-  async updateMissionTask(taskId: number, data: Prisma.MissionTaskUpdateInput) {
+  async updateMissionTask(
+    missionId: number,
+    taskId: number,
+    data: Prisma.MissionTaskUpdateInput,
+  ) {
     return await this.prisma.missionTask.update({
       where: { id: taskId, deletedAt: null },
       data,
     });
+  }
+
+  async createMissionTask(args: Prisma.MissionTaskCreateArgs) {
+    return await this.prisma.missionTask.create(args);
   }
 }

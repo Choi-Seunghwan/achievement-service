@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { TagRepository } from './tag.repository';
 import { MAX_TAG_COUNT } from './constants/tag.constant';
+import { MissionTagRepository } from './mission-tag.repository';
 
 @Injectable()
 export class TagService {
-  constructor(private readonly tagRepository: TagRepository) {}
+  constructor(
+    private readonly tagRepository: TagRepository,
+    private readonly missionTagRepository: MissionTagRepository,
+  ) {}
 
   async getTags(accountId: number) {
     return await this.tagRepository.getTags({
@@ -42,6 +46,34 @@ export class TagService {
       data: { deletedAt: new Date() },
     });
 
+    return true;
+  }
+
+  async createMissionTag(missionId: number, tagId: number): Promise<boolean> {
+    const missionTag = await this.missionTagRepository.findMissionTag(
+      missionId,
+      tagId,
+    );
+
+    if (missionTag) {
+      throw new BadRequestException('Mission tag already exists');
+    }
+
+    await this.missionTagRepository.createMissionTag(missionId, tagId);
+    return true;
+  }
+
+  async deleteMissionTag(missionId: number, tagId: number): Promise<boolean> {
+    const missionTag = await this.missionTagRepository.findMissionTag(
+      missionId,
+      tagId,
+    );
+
+    if (!missionTag) {
+      throw new BadRequestException('Mission tag not found');
+    }
+
+    await this.missionTagRepository.deleteMissionTag(missionTag.id);
     return true;
   }
 }

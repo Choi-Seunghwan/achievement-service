@@ -16,10 +16,15 @@ import { startOfDay } from 'date-fns';
 import { ActiveMissionsResponseDto } from './dto/active-missions-response.dto';
 import { toMissionTaskView } from './utils/toMissionTaskView';
 import { MissionView } from './view/mission-view';
+import { Transactional } from '@nestjs-cls/transactional';
+import { TagService } from 'src/tag/tag.service';
 
 @Injectable()
 export class MissionService {
-  constructor(private readonly missionRepository: MissionRepository) {}
+  constructor(
+    private readonly missionRepository: MissionRepository,
+    private readonly tagService: TagService,
+  ) {}
 
   /**
    * 사용자 활성 미션 목록 가져오기
@@ -224,6 +229,7 @@ export class MissionService {
   /**
    * 미션 수정
    */
+  @Transactional()
   async updateMission(
     accountId: number,
     missionId: number,
@@ -231,23 +237,90 @@ export class MissionService {
       name?: string;
       description?: string;
       icon?: string;
-      tasks?: { name: string }[];
+      tasks?: { id?: number; name: string }[];
       tagIds?: number[];
       repeatType?: MissionRepeatType;
       repeatDays?: MissionRepeatDay[];
     },
   ) {
-    await this.getMission(accountId, missionId);
+    const mission = await this.getMission(accountId, missionId);
+
+    if (data.tasks && data.tasks.length > MISSION_TASK_MAX_COUNT) {
+      throw new BadRequestException(
+        `max task count error, max: ${MISSION_TASK_MAX_COUNT}, current: ${data.tasks.length}`,
+      );
+    }
+
+    if (data?.tasks?.length) {
+      // 미션 Task 업데이트
+      const tasks = data.tasks.map((task) => {
+        // Task가 존재하고, 이름이 변경되었으면 업데이트
+        if (task.id && mission.missionTasks.some((t) => t.id === task.id)) {
+          return this.missionRepository.updateMissionTask(missionId, task.id, {
+            name: task.name,
+          });
+        }
+        // Task가 존재하지 않으면 삭제 처리
+        else if (
+          task.id &&
+          !mission.missionTasks.some((t) => t.id === task.id)
+        ) {
+          return this.missionRepository.updateMissionTask(missionId, task.id, {
+            deletedAt: new Date(),
+          });
+        }
+        // 새 Task 생성
+        else {
+          return this.missionRepository.createMissionTask({
+            data: {
+              missionId,
+              name: task.name,
+            },
+          });
+        }
+      });
+
+      await Promise.all(tasks);
+    }
+
+    // 미션 태그 업데이트
+    if (data.tagIds) {
+      const toAddTagIds = data.tagIds.filter(
+        (tagId) => !mission.missionTags.some((t) => t.tagId === tagId),
+      );
+
+      const toRemoveTagIds = mission.missionTags
+        .filter((t) => !data.tagIds.includes(t.tagId))
+        .map((t) => t.tagId);
+
+      const tagUpdateTasks = [
+        ...toAddTagIds.map((tagId) =>
+          this.tagService.createMissionTag(missionId, tagId),
+        ),
+        ...toRemoveTagIds.map((tagId) =>
+          this.tagService.deleteMissionTag(missionId, tagId),
+        ),
+      ];
+
+      await Promise.all(tagUpdateTasks);
+    }
 
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
-      data,
+      data: {
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        repeatType: data.repeatType,
+        repeatDays: data.repeatDays,
+      },
     });
   }
 
   /**
    * 미션 완료, 반복 미션 오늘 완료
    */
+  @Transactional()
   async completeMission(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
 
@@ -462,7 +535,7 @@ export class MissionService {
 
     switch (mission.repeatType) {
       case MissionRepeatType.NONE: {
-        await this.missionRepository.updateMissionTask(taskId, {
+        await this.missionRepository.updateMissionTask(missionId, taskId, {
           status: MissionTaskStatus.COMPLETED,
         });
         break;
