@@ -30,4 +30,23 @@ export class AchievementRepository {
 
     return { total, items };
   }
+
+  async getUserAchievement(accountId: number, achievementId: number) {
+    return await this.prismaService.achievement.findFirst({
+      where: { id: achievementId, accountId, deletedAt: null },
+      include: {
+        missions: true,
+      },
+    });
+  }
+
+  async updateAchievement(
+    achievementId: number,
+    data: Prisma.AchievementUpdateInput,
+  ) {
+    return await this.prismaService.achievement.update({
+      where: { id: achievementId, deletedAt: null },
+      data,
+    });
+  }
 }

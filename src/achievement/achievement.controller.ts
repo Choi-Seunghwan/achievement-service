@@ -1,5 +1,13 @@
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { AchievementService } from './achievement.service';
 
@@ -37,6 +45,19 @@ export class AchievementController {
       user.accountId,
       { page: query.page || 1, size: query.size || 10 },
       query.status || 'IN_PROGRESS',
+    );
+    return res;
+  }
+
+  @Post('/:achievementId/complete')
+  @UseGuards(AuthGuard)
+  async completeAchievement(
+    @User() user: JwtPayload,
+    @Param('achievementId') achievementId: number,
+  ) {
+    const res = await this.achievementService.completeAchievement(
+      user.accountId,
+      achievementId,
     );
     return res;
   }

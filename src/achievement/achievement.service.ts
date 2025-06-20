@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AchievementRepository } from './achievement.repository';
-import { AchievementStatus } from '@prisma/client';
+import { AchievementStatus, MissionStatus } from '@prisma/client';
 
 @Injectable()
 export class AchievementService {
@@ -38,5 +38,26 @@ export class AchievementService {
       status,
       paging,
     );
+  }
+
+  async completeAchievement(accountId: number, achievementId: number) {
+    const achievement = await this.achievementRepository.getUserAchievement(
+      accountId,
+      achievementId,
+    );
+
+    if (!achievement) throw new BadRequestException('Achievement not found');
+
+    if (
+      !achievement.missions.every(
+        (mission) => mission.status === MissionStatus.COMPLETED,
+      )
+    )
+      throw new BadRequestException('All missions are not completed');
+
+    await this.achievementRepository.updateAchievement(achievementId, {
+      completedAt: new Date(),
+      status: AchievementStatus.COMPLETED,
+    });
   }
 }
