@@ -22,6 +22,9 @@ import { TaskIdParam } from './dto/task-id.param';
 export class MissionController {
   constructor(private readonly missionService: MissionService) {}
 
+  /**
+   * missions 조회
+   */
   @Get('/')
   @UseGuards(AuthGuard)
   async getMissions(@User() user: JwtPayload, @Query() query: GetMissionsDto) {
@@ -41,6 +44,9 @@ export class MissionController {
     );
   }
 
+  /**
+   * active missions 조회
+   */
   @Get('/active')
   @UseGuards(AuthGuard)
   async getActiveMissions(@User() user: JwtPayload) {
@@ -48,6 +54,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission 생성
+   */
   @Post('/')
   @UseGuards(AuthGuard)
   async createMission(@User() user: JwtPayload, @Body() dto: CreateMissionDto) {
@@ -64,6 +73,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * achievement 연결 가능 missions 조회
+   */
   @Get('available-for-achievement')
   @UseGuards(AuthGuard)
   async getAvailableMissionsForAchievement(@User() user: JwtPayload) {
@@ -73,6 +85,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission 수정
+   */
   @Patch('/:missionId')
   @UseGuards(AuthGuard)
   async updateMission(
@@ -96,6 +111,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission 완료
+   */
   @Post(':missionId/complete')
   @UseGuards(AuthGuard)
   async completeMission(
@@ -110,7 +128,10 @@ export class MissionController {
     return Response.of(result);
   }
 
-  @Post('/:missionId/close-repeat-mission')
+  /**
+   * repeat missions 종결
+   */
+  @Post('/:missionId/close-repeat')
   @UseGuards(AuthGuard)
   async closeRepeatMission(
     @User() user: JwtPayload,
@@ -124,6 +145,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * 미션 완료 취소
+   */
   @Post('/:missionId/cancel-completion')
   @UseGuards(AuthGuard)
   async cancelMissionCompletion(
@@ -138,6 +162,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission 삭제
+   */
   @Delete(':missionId/delete')
   @UseGuards(AuthGuard)
   async deleteMission(
@@ -152,6 +179,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission 상세 조회
+   */
   @Get('/:missionId')
   @UseGuards(AuthGuard)
   async getMission(@User() user: JwtPayload, @Param() param: MissionIdParam) {
@@ -163,8 +193,9 @@ export class MissionController {
     return Response.of(result);
   }
 
-  /** Mission Task */
-
+  /**
+   * mission task 생성
+   */
   @Post('/:missionId/tasks')
   @UseGuards(AuthGuard)
   async createTask(
@@ -181,6 +212,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission task 완료
+   */
   @Post('/:missionId/tasks/:taskId/complete')
   @UseGuards(AuthGuard)
   async completeTask(
@@ -197,6 +231,9 @@ export class MissionController {
     return Response.of(result);
   }
 
+  /**
+   * mission task 수정
+   */
   @Post('/:missionId/tasks/:taskId/update')
   @UseGuards(AuthGuard)
   async updateTask() {
@@ -204,6 +241,9 @@ export class MissionController {
     //
   }
 
+  /**
+   * mission task 정렬
+   */
   @Post('/:missionId/tasks/order')
   @UseGuards(AuthGuard)
   async updateTaskOrder() {

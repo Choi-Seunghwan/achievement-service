@@ -461,8 +461,12 @@ export class MissionService {
   async closeRepeatMission(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
 
-    if (mission.repeatType === MissionRepeatType.NONE)
-      throw new BadRequestException('cannot close repeat mission');
+    if (
+      mission.repeatType !== MissionRepeatType.DAILY &&
+      mission.repeatType !== MissionRepeatType.WEEKLY
+    ) {
+      throw new BadRequestException('not repeat mission');
+    }
 
     if (mission.status === MissionStatus.COMPLETED)
       throw new BadRequestException('already completed');
