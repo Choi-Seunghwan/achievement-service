@@ -40,6 +40,7 @@ enum AchievementStatus {
   COMPLETED // 완료
 }
 
+// 미션
 model Mission {
   id            Int           @id @default(autoincrement())
   accountId     Int           @map("account_id")
@@ -70,6 +71,7 @@ model Mission {
   @@map("mission")
 }
 
+// 미션 하위 작업
 model MissionTask {
   id        Int               @id @default(autoincrement())
   missionId Int               @map("mission_id")
@@ -85,6 +87,7 @@ model MissionTask {
   @@map("mission_task")
 }
 
+// 미션 이력
 model MissionHistory {
   id           Int     @id @default(autoincrement())
   missionId    Int     @map("mission_id")
@@ -99,6 +102,7 @@ model MissionHistory {
   @@map("mission_histories")
 }
 
+// 업적
 model Achievement {
   id          Int               @id @default(autoincrement())
   accountId   Int               @map("account_id")
@@ -118,6 +122,7 @@ model Achievement {
   @@map("achievement")
 }
 
+// 태그
 model Tag {
   id        Int     @id @default(autoincrement())
   accountId Int     @map("account_id")
@@ -133,6 +138,7 @@ model Tag {
   @@map("tag")
 }
 
+// 태그 - 미션 연결
 model MissionTag {
   id        Int @id @default(autoincrement())
   missionId Int @map("mission_id")
@@ -147,4 +153,66 @@ model MissionTag {
 
   @@unique([missionId, tagId]) // 중복 방지
   @@map("mission_tag")
+}
+
+// 공개 업적 (마스터)
+model PublicAchievement {
+  id          Int     @id @default(autoincrement())
+  creatorId   Int     @map("creator_id")
+  name        String
+  description String?
+  icon        String?
+
+  missions     PublicMission[]
+  participants AchievementParticipant[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+}
+
+// 공개 미션 (마스터)
+model PublicMission {
+  id                  Int                @id @default(autoincrement())
+  publicAchievementId Int                @map("public_achievement_id")
+  name                String
+  description         String?
+  repeatType          MissionRepeatType
+  repeatDays          MissionRepeatDay[]
+  icon                String?
+
+  tasks PublicMissionTask[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  PublicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
+}
+
+// 공개 작업 (마스터)
+model PublicMissionTask {
+  id              Int    @id @default(autoincrement())
+  name            String
+  publicMissionId Int    @map("public_mission_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  PublicMission PublicMission? @relation(fields: [publicMissionId], references: [id])
+}
+
+// 공개 업적 참여 기록
+model AchievementParticipant {
+  id                    Int @id @default(autoincrement())
+  accountId             Int @map("account_id")
+  publicAchievementId   Int @map("public_achievement_id")
+  personalAchievementId Int @map("personal_achievement_id")
+
+  jointedAt DateTime @default(now()) @map("joined_at")
+
+  PublicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
+
+  @@unique([accountId, publicAchievementId])
 }
