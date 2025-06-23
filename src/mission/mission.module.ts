@@ -8,5 +8,6 @@ import { TagModule } from 'src/tag/tag.module';
   imports: [TagModule],
   controllers: [MissionController],
   providers: [MissionService, MissionRepository],
+  exports: [MissionService],
 })
 export class MissionModule {}

@@ -8,6 +8,8 @@ import { PrismaService } from './database/prisma.service';
 import { MissionModule } from './mission/mission.module';
 import { TagModule } from './tag/tag.module';
 import { AchievementModule } from './achievement/achievement.module';
+import { PublicAchievementModule } from './public-achievement/public-achievement.module';
+import { PublicMissionTaskModule } from './public-mission-task/public-mission-task.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { AchievementModule } from './achievement/achievement.module';
     MissionModule,
     TagModule,
     AchievementModule,
+    PublicAchievementModule,
+    PublicMissionTaskModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

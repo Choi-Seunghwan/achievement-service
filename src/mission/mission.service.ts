@@ -135,9 +135,9 @@ export class MissionService {
     );
   }
 
-  async getMissions(accountId: number) {
+  async getMissions(accountId: number, missionIds: number[]) {
     return await this.missionRepository.getMissions({
-      where: { accountId },
+      where: { accountId, id: { in: missionIds } },
     });
   }
 
