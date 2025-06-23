@@ -216,7 +216,8 @@ model AchievementParticipant {
   publicAchievementId   Int @map("public_achievement_id")
   personalAchievementId Int @map("personal_achievement_id")
 
-  jointedAt DateTime @default(now()) @map("joined_at")
+  jointedAt DateTime  @default(now()) @map("joined_at")
+  leavedAt  DateTime? @map("leaved_at")
 
   PublicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
 
