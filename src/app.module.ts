@@ -10,6 +10,7 @@ import { TagModule } from './tag/tag.module';
 import { AchievementModule } from './achievement/achievement.module';
 import { PublicAchievementModule } from './public-achievement/public-achievement.module';
 import { PublicMissionTaskModule } from './public-mission-task/public-mission-task.module';
+import { AchievementParticipantModule } from './achievement-participant/achievement-participant.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PublicMissionTaskModule } from './public-mission-task/public-mission-ta
     AchievementModule,
     PublicAchievementModule,
     PublicMissionTaskModule,
+    AchievementParticipantModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
