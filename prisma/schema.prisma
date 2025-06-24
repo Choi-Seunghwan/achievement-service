@@ -42,13 +42,14 @@ enum AchievementStatus {
 
 // 미션
 model Mission {
-  id            Int           @id @default(autoincrement())
-  accountId     Int           @map("account_id")
-  achievementId Int?          @map("achievement_id")
-  name          String
-  description   String?
-  status        MissionStatus @default(IN_PROGRESS)
-  icon          String?
+  id              Int           @id @default(autoincrement())
+  accountId       Int           @map("account_id")
+  achievementId   Int?          @map("achievement_id")
+  publicMissionId Int?
+  name            String
+  description     String?
+  status          MissionStatus @default(IN_PROGRESS)
+  icon            String?
 
   repeatType MissionRepeatType  @map("repeat_type")
   repeatDays MissionRepeatDay[] @map("repeat_days")
@@ -68,21 +69,25 @@ model Mission {
   missionTags    MissionTag[]
   missionHistory MissionHistory[]
 
+  publicMission PublicMission? @relation(fields: [publicMissionId], references: [id])
+
   @@map("mission")
 }
 
 // 미션 하위 작업
 model MissionTask {
-  id        Int               @id @default(autoincrement())
-  missionId Int               @map("mission_id")
-  name      String
-  status    MissionTaskStatus @default(IN_PROGRESS)
+  id                  Int               @id @default(autoincrement())
+  missionId           Int               @map("mission_id")
+  publicMissionTaskId Int?
+  name                String
+  status              MissionTaskStatus @default(IN_PROGRESS)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  mission Mission @relation(fields: [missionId], references: [id])
+  mission           Mission            @relation(fields: [missionId], references: [id])
+  publicMissionTask PublicMissionTask? @relation(fields: [publicMissionTaskId], references: [id])
 
   @@map("mission_task")
 }
@@ -104,20 +109,23 @@ model MissionHistory {
 
 // 업적
 model Achievement {
-  id          Int               @id @default(autoincrement())
-  accountId   Int               @map("account_id")
-  name        String
-  status      AchievementStatus @default(IN_PROGRESS)
-  icon        String?
-  description String?
-
-  missions Mission[]
+  id                  Int               @id @default(autoincrement())
+  accountId           Int               @map("account_id")
+  name                String
+  publicAchievementId Int?
+  status              AchievementStatus @default(IN_PROGRESS)
+  icon                String?
+  description         String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   completedAt DateTime? @map("completed_at")
+
+  missions Mission[]
+
+  publicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
 
   @@map("achievement")
 }
@@ -163,12 +171,13 @@ model PublicAchievement {
   description String?
   icon        String?
 
-  missions     PublicMission[]
-  participants AchievementParticipant[]
-
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
+
+  missions     PublicMission[]
+  participants AchievementParticipant[]
+  achievement  Achievement[]
 
   @@map("public_achievement")
 }
@@ -189,7 +198,8 @@ model PublicMission {
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  PublicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
+  publicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
+  Mission           Mission[]
 
   @@map("public_mission")
 }
@@ -204,7 +214,8 @@ model PublicMissionTask {
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  PublicMission PublicMission? @relation(fields: [publicMissionId], references: [id])
+  publicMission PublicMission? @relation(fields: [publicMissionId], references: [id])
+  MissionTask   MissionTask[]
 
   @@map("public_mission_task")
 }
@@ -218,7 +229,7 @@ model AchievementParticipant {
   jointedAt DateTime  @default(now()) @map("joined_at")
   leavedAt  DateTime? @map("leaved_at")
 
-  PublicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
+  publicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
 
   @@unique([accountId, publicAchievementId])
   @@map("achievement_participant")
