@@ -32,7 +32,11 @@ export class MissionRepository {
       ...args,
       where: { ...args.where, deletedAt: null },
       include: {
-        missionTasks: true,
+        missionTasks: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
         missionTags: { include: { tag: true } },
         achievement: true,
         ...args.include,
