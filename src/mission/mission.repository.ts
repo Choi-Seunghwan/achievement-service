@@ -47,10 +47,10 @@ export class MissionRepository {
       ...args,
       where: { ...args.where, deletedAt: null },
       include: {
+        ...args.include,
         missionTasks: true,
         missionTags: { include: { tag: true } },
         achievement: true,
-        ...args.include,
       },
       omit: { ...args.omit, deletedAt: true },
     });
@@ -68,9 +68,27 @@ export class MissionRepository {
     return await this.prisma.missionHistory.create(args);
   }
 
-  async findTodayMissionHistories(accountId: number, todayStart: Date) {
+  async findTodayMissionsHistories(accountId: number, todayStart: Date) {
     return this.prisma.missionHistory.findMany({
       where: {
+        mission: {
+          accountId,
+          deletedAt: null,
+        },
+        createdAt: { gte: todayStart },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findTodayMissionsHistoriesByMission(
+    accountId: number,
+    missionId: number,
+    todayStart: Date,
+  ) {
+    return this.prisma.missionHistory.findMany({
+      where: {
+        missionId,
         mission: {
           accountId,
           deletedAt: null,

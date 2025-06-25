@@ -19,11 +19,11 @@ export class AchievementParticipantRepository {
       where: {
         accountId,
         leavedAt: null,
-        PublicAchievement: { deletedAt: null },
+        publicAchievement: { deletedAt: null },
       },
       orderBy: { jointedAt: 'desc' },
       include: {
-        PublicAchievement: {
+        publicAchievement: {
           include: { missions: true },
         },
       },

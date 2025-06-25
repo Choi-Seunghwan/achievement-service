@@ -184,8 +184,11 @@ export class MissionController {
    */
   @Get('/:missionId')
   @UseGuards(AuthGuard)
-  async getMission(@User() user: JwtPayload, @Param() param: MissionIdParam) {
-    const result = await this.missionService.getMission(
+  async getMissionDetail(
+    @User() user: JwtPayload,
+    @Param() param: MissionIdParam,
+  ) {
+    const result = await this.missionService.getMissionDetail(
       user.accountId,
       param.missionId,
     );

@@ -58,7 +58,7 @@ export class MissionService {
 
     // 오늘 히스토리 전체 가져오기 (최신 기록이 먼저)
     const todayHistories =
-      await this.missionRepository.findTodayMissionHistories(
+      await this.missionRepository.findTodayMissionsHistories(
         accountId,
         todayStart,
       );
@@ -155,6 +155,52 @@ export class MissionService {
       );
 
     return mission;
+  }
+
+  /**
+   *  미션 상세
+   */
+  async getMissionDetail(accountId: number, missionId: number) {
+    const todayStart = startOfDay(new Date());
+
+    const mission = await this.missionRepository.getMission({
+      where: { id: missionId, accountId },
+    });
+
+    const todayHistories =
+      await this.missionRepository.findTodayMissionsHistoriesByMission(
+        accountId,
+        missionId,
+        todayStart,
+      );
+
+    if (!mission)
+      throw new NotFoundException(
+        `mission not found (accountId: ${accountId}, missionId: ${missionId})`,
+      );
+
+    const taskTodayMap = new Map<number, boolean>();
+    let missionTodayCompleted = false;
+
+    for (const h of todayHistories) {
+      if (h.taskId === null) {
+        missionTodayCompleted ||= h.completed;
+      } else if (!taskTodayMap.has(h.taskId)) {
+        taskTodayMap.set(h.taskId, h.completed);
+      }
+    }
+
+    // MissionView 생성
+    const missionView: MissionView = {
+      ...mission,
+      missionTasks: mission.missionTasks.map((task) => ({
+        ...task,
+        todayCompleted: taskTodayMap.get(task.id) ?? false,
+      })),
+      todayCompleted: missionTodayCompleted,
+    };
+
+    return missionView;
   }
 
   /**
@@ -353,7 +399,7 @@ export class MissionService {
 
       case MissionRepeatType.DAILY: {
         const histories =
-          await this.missionRepository.findTodayMissionHistories(
+          await this.missionRepository.findTodayMissionsHistories(
             accountId,
             startOfDay(new Date()),
           );
