@@ -159,7 +159,6 @@ model MissionTag {
   mission Mission @relation(fields: [missionId], references: [id])
   tag     Tag     @relation(fields: [tagId], references: [id])
 
-  @@unique([missionId, tagId]) // 중복 방지
   @@map("mission_tag")
 }
 

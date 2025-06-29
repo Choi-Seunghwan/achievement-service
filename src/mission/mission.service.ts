@@ -128,7 +128,7 @@ export class MissionService {
         where: { accountId: args.accountId, status: args.status },
         include: {
           missionTasks: true,
-          missionTags: { include: { tag: true } },
+          missionTags: { include: { tag: true }, where: { deletedAt: null } },
         },
       },
       paging,

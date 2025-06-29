@@ -36,9 +36,17 @@ export class MissionRepository {
           orderBy: {
             id: 'asc',
           },
+          where: {
+            deletedAt: null,
+          },
         },
-        missionTags: { include: { tag: true } },
-        achievement: true,
+        missionTags: {
+          include: { tag: true },
+          where: {
+            deletedAt: null,
+          },
+        },
+        achievement: { where: { deletedAt: null } },
         ...args.include,
       },
       orderBy: { createdAt: 'desc', ...args.orderBy },
@@ -52,9 +60,11 @@ export class MissionRepository {
       where: { ...args.where, deletedAt: null },
       include: {
         ...args.include,
-        missionTasks: true,
-        missionTags: { include: { tag: true } },
-        achievement: true,
+        missionTasks: {
+          where: { deletedAt: null },
+        },
+        missionTags: { include: { tag: true }, where: { deletedAt: null } },
+        achievement: { where: { deletedAt: null } },
       },
       omit: { ...args.omit, deletedAt: true },
     });
