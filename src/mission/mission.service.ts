@@ -621,8 +621,9 @@ export class MissionService {
     return await this.missionRepository.getMissions({
       where: {
         accountId,
-        status: MissionStatus.IN_PROGRESS,
         achievement: null,
+        publicMission: null,
+        deletedAt: null,
       },
     });
   }
