@@ -6,5 +6,6 @@ import { AchievementRepository } from './achievement.repository';
 @Module({
   controllers: [AchievementController],
   providers: [AchievementService, AchievementRepository],
+  exports: [AchievementService],
 })
 export class AchievementModule {}

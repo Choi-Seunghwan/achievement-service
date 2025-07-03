@@ -47,6 +47,7 @@ export class MissionRepository {
           },
         },
         achievement: { where: { deletedAt: null } },
+        publicMission: { where: { deletedAt: null } },
         ...args.include,
       },
       orderBy: { createdAt: 'desc', ...args.orderBy },
@@ -75,7 +76,10 @@ export class MissionRepository {
   }
 
   async updateMission(args: Prisma.MissionUpdateArgs) {
-    return await this.prisma.mission.update(args);
+    return await this.prisma.mission.update({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+    });
   }
 
   async createMissionHistory(args: Prisma.MissionHistoryCreateArgs) {
@@ -137,5 +141,12 @@ export class MissionRepository {
 
   async createMissionTask(args: Prisma.MissionTaskCreateArgs) {
     return await this.prisma.missionTask.create(args);
+  }
+
+  async updateMissions(args: Prisma.MissionUpdateManyArgs) {
+    return await this.prisma.mission.updateMany({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+    });
   }
 }

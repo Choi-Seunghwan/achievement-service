@@ -28,6 +28,27 @@ export class AchievementService {
     });
   }
 
+  async createAchievementWithPublicData(
+    accountId: number,
+    data: {
+      publicMissionIds: number[];
+      name: string;
+      description?: string;
+      icon?: string;
+      publicAchievementId: number;
+    },
+  ) {
+    return await this.achievementRepository.createAchievement({
+      data: {
+        accountId,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        publicAchievementId: data.publicAchievementId,
+      },
+    });
+  }
+
   async getUserAchievements(
     accountId: number,
     paging: { page: number; size: number },

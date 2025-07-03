@@ -627,4 +627,67 @@ export class MissionService {
       },
     });
   }
+
+  @Transactional()
+  async connectMissionsWithPublicData(
+    accountId: number,
+    achievementId: number,
+    missionIdToPublicMissionIdMap: Record<number, number>,
+  ) {
+    const missionIds = Object.keys(missionIdToPublicMissionIdMap).map(Number);
+
+    const missions = await this.missionRepository.getMissions({
+      where: {
+        accountId,
+        id: { in: missionIds },
+        deletedAt: null,
+      },
+    });
+
+    if (missions.length !== missionIds.length) {
+      throw new BadRequestException('Some missions not found or deleted');
+    }
+
+    await Promise.all(
+      missions.map((mission) => {
+        const publicMissionId = missionIdToPublicMissionIdMap[mission.id];
+
+        if (!publicMissionId) {
+          throw new BadRequestException(
+            `No publicMissionId found for missionId: ${mission.id}`,
+          );
+        }
+
+        return this.missionRepository.updateMission({
+          where: { id: mission.id, accountId },
+          data: {
+            achievementId,
+            publicMissionId,
+          },
+        });
+      }),
+    );
+
+    return true;
+  }
+
+  /**
+   * 미션이 공개 업적에 연결되어 있는지 확인
+   */
+  async checkMissionsHasPublicMission(
+    accountId: number,
+    missionIds: number[],
+  ): Promise<boolean> {
+    const missions = await this.missionRepository.getMissions({
+      where: {
+        accountId,
+        id: { in: missionIds },
+        publicMissionId: {
+          not: null,
+        },
+      },
+    });
+
+    return missions.length > 0;
+  }
 }

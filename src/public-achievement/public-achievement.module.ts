@@ -4,9 +4,10 @@ import { PublicAchievementController } from './public-achievement.controller';
 import { PublicAchievementService } from './public-achievement.service';
 import { PublicAchievementRepository } from './public-achievement.repository';
 import { PublicMissionTaskModule } from 'src/public-mission-task/public-mission-task.module';
+import { AchievementModule } from 'src/achievement/achievement.module';
 
 @Module({
-  imports: [MissionModule, PublicMissionTaskModule],
+  imports: [MissionModule, PublicMissionTaskModule, AchievementModule],
   controllers: [PublicAchievementController],
   providers: [PublicAchievementService, PublicAchievementRepository],
 })
