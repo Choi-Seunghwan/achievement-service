@@ -94,4 +94,30 @@ export class PublicAchievementService {
       missionMap,
     );
   }
+
+  async getPublicAchievements(
+    accountId: number,
+    paging: { page: number; size: number },
+  ) {
+    const result = await this.publicAchievementRepository.getPublicAchievements(
+      {},
+      paging,
+    );
+
+    return result;
+  }
+
+  async getPopularPublicAchievements(accountId: number) {
+    return await this.publicAchievementRepository.getPublicAchievements(
+      {
+        orderBy: {
+          participants: {
+            _count: 'desc',
+          },
+          createdAt: 'desc',
+        },
+      },
+      { page: 1, size: 10 },
+    );
+  }
 }

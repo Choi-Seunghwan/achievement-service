@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { PublicAchievementService } from './public-achievement.service';
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import { CreatePublicAchievementDto } from './dtos/create-public-achievement.dto';
+import { GetPublicAchievementsDto } from './dtos/get-public-achievements.dto';
+import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 
-@Controller('public-achievement')
+@Controller('public-achievements')
 export class PublicAchievementController {
   constructor(
     private readonly publicAchievementService: PublicAchievementService,
@@ -24,17 +26,41 @@ export class PublicAchievementController {
         missionIds: dto.missionIds,
       },
     );
-    return res;
+    return Response.of(res);
   }
 
   @Get('/')
-  async getPublicAchievements() {}
+  @UseGuards(AuthGuard)
+  async getPublicAchievements(
+    @User() user: JwtPayload,
+    @Query() query: GetPublicAchievementsDto,
+  ) {
+    const result = await this.publicAchievementService.getPublicAchievements(
+      user.accountId,
+      { page: query.page, size: query.size },
+    );
+    return PagingResponse.of(
+      result.items,
+      result.total,
+      query.page,
+      query.size,
+    );
+  }
 
-  @Post('/:publicAchievementId/enter')
-  async enterPublicAchievement() {}
+  @Get('/popular')
+  @UseGuards(AuthGuard)
+  async getPopularPublicAchievements(@User() user: JwtPayload) {
+    const result =
+      await this.publicAchievementService.getPopularPublicAchievements(
+        user.accountId,
+      );
+    return Response.of(result);
+  }
+  // @Post('/:publicAchievementId/enter')
+  // async enterPublicAchievement() {}
 
-  @Post('/:publicAchievementId/leave')
-  async leavePublicAchievement() {}
+  // @Post('/:publicAchievementId/leave')
+  // async leavePublicAchievement() {}
 
   // async updatePublicAchievement() {}
   // async deletePublicAchievement() {}

@@ -266,7 +266,7 @@ export class MissionService {
 
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
-      data: { status: MissionStatus.COMPLETED },
+      data: { status: MissionStatus.COMPLETED, completedAt: new Date() },
     });
 
     return true;
@@ -387,7 +387,7 @@ export class MissionService {
 
         await this.missionRepository.updateMission({
           where: { id: missionId, accountId },
-          data: { status: MissionStatus.COMPLETED },
+          data: { status: MissionStatus.COMPLETED, completedAt: new Date() },
         });
         break;
       }
@@ -452,7 +452,7 @@ export class MissionService {
 
         await this.missionRepository.updateMission({
           where: { id: missionId, accountId },
-          data: { status: MissionStatus.IN_PROGRESS },
+          data: { status: MissionStatus.IN_PROGRESS, completedAt: null },
         });
 
         await this.missionRepository.createMissionHistory({
@@ -483,7 +483,7 @@ export class MissionService {
 
         await this.missionRepository.updateMission({
           where: { id: missionId, accountId },
-          data: { status: MissionStatus.IN_PROGRESS },
+          data: { status: MissionStatus.IN_PROGRESS, completedAt: null },
         });
 
         await this.missionRepository.createMissionHistory({
