@@ -25,6 +25,7 @@ export class AchievementRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         missions: true,
+        publicAchievement: true,
       },
     });
 
@@ -36,6 +37,7 @@ export class AchievementRepository {
       where: { id: achievementId, accountId, deletedAt: null },
       include: {
         missions: true,
+        publicAchievement: true,
       },
     });
   }

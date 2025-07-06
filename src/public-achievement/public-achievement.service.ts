@@ -35,6 +35,7 @@ export class PublicAchievementService {
       );
     }
 
+    // 공개 미션 데이터 생성
     const publicMissionData = missions.map((mission) => ({
       name: mission.name,
       icon: mission.icon,
@@ -49,9 +50,17 @@ export class PublicAchievementService {
         name: data.name,
         description: data.description,
         icon: data.icon,
+        // 공개 미션 생성
         missions: {
           createMany: {
             data: publicMissionData,
+          },
+        },
+        // 참여자 생성
+        participants: {
+          create: {
+            accountId,
+            jointedAt: new Date(),
           },
         },
       });
@@ -71,6 +80,7 @@ export class PublicAchievementService {
       }),
     );
 
+    // 유저 개인 업적 생성
     const achievement =
       await this.achievementService.createAchievementWithPublicData(accountId, {
         publicMissionIds: publicMissions.map((m) => m.id),
@@ -80,6 +90,7 @@ export class PublicAchievementService {
         publicAchievementId: publicAchievement.id,
       });
 
+    // 미션, 공개 미션 매핑. 반드시 index 순서가 맞아야 함
     const missionMap = missions.reduce(
       (acc, mission, i) => {
         acc[mission.id] = publicMissions[i].id;
@@ -88,6 +99,7 @@ export class PublicAchievementService {
       {} as Record<number, number>,
     );
 
+    // 공개 미션과 유저 미션 연결
     await this.missionService.connectMissionsWithPublicData(
       accountId,
       achievement.id,
@@ -110,12 +122,14 @@ export class PublicAchievementService {
   async getPopularPublicAchievements(accountId: number) {
     return await this.publicAchievementRepository.getPublicAchievements(
       {
-        orderBy: {
-          participants: {
-            _count: 'desc',
+        orderBy: [
+          {
+            participants: { _count: 'desc' },
           },
-          createdAt: 'desc',
-        },
+          {
+            createdAt: 'desc',
+          },
+        ],
       },
       { page: 1, size: 10 },
     );

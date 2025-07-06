@@ -30,7 +30,7 @@ export class PublicAchievementRepository {
           },
         },
       },
-      orderBy: { createdAt: 'desc', ...args.orderBy },
+      orderBy: args.orderBy || { createdAt: 'desc' },
     });
 
     const total = await this.prismaService.publicAchievement.count({

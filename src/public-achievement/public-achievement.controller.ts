@@ -54,7 +54,12 @@ export class PublicAchievementController {
       await this.publicAchievementService.getPopularPublicAchievements(
         user.accountId,
       );
-    return Response.of(result);
+    return PagingResponse.of(
+      result.items,
+      result.total,
+      1,
+      result.items.length,
+    );
   }
   // @Post('/:publicAchievementId/enter')
   // async enterPublicAchievement() {}
