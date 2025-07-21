@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PublicAchievementService } from './public-achievement.service';
 import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import { CreatePublicAchievementDto } from './dtos/create-public-achievement.dto';
@@ -38,6 +46,7 @@ export class PublicAchievementController {
     const result = await this.publicAchievementService.getPublicAchievements(
       user.accountId,
       { page: query.page, size: query.size },
+      query.keyword,
     );
     return PagingResponse.of(
       result.items,
@@ -51,15 +60,26 @@ export class PublicAchievementController {
   @UseGuards(AuthGuard)
   async getPopularPublicAchievements(@User() user: JwtPayload) {
     const result =
-      await this.publicAchievementService.getPopularPublicAchievements(
-        user.accountId,
-      );
+      await this.publicAchievementService.getPopularPublicAchievements();
     return PagingResponse.of(
       result.items,
       result.total,
       1,
       result.items.length,
     );
+  }
+
+  @Get('/:publicAchievementId')
+  @UseGuards(AuthGuard)
+  async getPublicAchievement(
+    @User() user: JwtPayload,
+    @Param('publicAchievementId') publicAchievementId: number,
+  ) {
+    const result = await this.publicAchievementService.getPublicAchievement(
+      user.accountId,
+      publicAchievementId,
+    );
+    return Response.of(result);
   }
   // @Post('/:publicAchievementId/enter')
   // async enterPublicAchievement() {}

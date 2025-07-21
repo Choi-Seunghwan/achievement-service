@@ -1,4 +1,4 @@
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetPublicAchievementsDto {
   @IsNumber()
@@ -6,4 +6,8 @@ export class GetPublicAchievementsDto {
 
   @IsNumber()
   size: number = 20;
+
+  @IsString()
+  @IsOptional()
+  keyword?: string;
 }

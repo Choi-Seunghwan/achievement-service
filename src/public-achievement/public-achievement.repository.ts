@@ -41,7 +41,7 @@ export class PublicAchievementRepository {
   }
 
   async getPublicAchievement(args: Prisma.PublicAchievementFindUniqueArgs) {
-    return await this.prismaService.publicAchievement.findUnique({
+    return await this.prismaService.publicAchievement.findFirst({
       where: { ...args.where, deletedAt: null },
       include: {
         ...args.include,

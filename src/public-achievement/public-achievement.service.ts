@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PublicAchievementRepository } from './public-achievement.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { MissionService } from 'src/mission/mission.service';
@@ -30,7 +34,7 @@ export class PublicAchievementService {
     );
 
     if (missions.some((m) => m.publicMissionId)) {
-      throw new Error(
+      throw new BadRequestException(
         'Some missions are already connected with a public missions.',
       );
     }
@@ -110,16 +114,25 @@ export class PublicAchievementService {
   async getPublicAchievements(
     accountId: number,
     paging: { page: number; size: number },
+    keyword?: string,
   ) {
+    const whereArg = {
+      name: {
+        contains: keyword,
+      },
+    };
+
     const result = await this.publicAchievementRepository.getPublicAchievements(
-      {},
+      {
+        where: whereArg,
+      },
       paging,
     );
 
     return result;
   }
 
-  async getPopularPublicAchievements(accountId: number) {
+  async getPopularPublicAchievements() {
     return await this.publicAchievementRepository.getPublicAchievements(
       {
         orderBy: [
@@ -133,5 +146,18 @@ export class PublicAchievementService {
       },
       { page: 1, size: 10 },
     );
+  }
+
+  async getPublicAchievement(accountId: number, id: number) {
+    const publicAchievement =
+      await this.publicAchievementRepository.getPublicAchievement({
+        where: { id },
+      });
+
+    if (!publicAchievement) {
+      throw new NotFoundException('Public Achievement not found');
+    }
+
+    return publicAchievement;
   }
 }
