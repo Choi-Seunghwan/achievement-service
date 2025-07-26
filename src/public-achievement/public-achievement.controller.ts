@@ -81,6 +81,36 @@ export class PublicAchievementController {
     );
     return Response.of(result);
   }
+
+  @Get('/:publicAchievementId/comments')
+  @UseGuards(AuthGuard)
+  async getPublicAchievementComments(
+    @Param('publicAchievementId') publicAchievementId: number,
+    @Query() query: { page: number; size: number },
+  ) {
+    const result =
+      await this.publicAchievementService.getPublicAchievementComments(
+        publicAchievementId,
+        query,
+      );
+    return Response.of(result);
+  }
+
+  @Post('/:publicAchievementId/comments')
+  @UseGuards(AuthGuard)
+  async createPublicAchievementComment(
+    @User() user: JwtPayload,
+    @Param('publicAchievementId') publicAchievementId: number,
+    @Body() data: { comment: string },
+  ) {
+    const result =
+      await this.publicAchievementService.createPublicAchievementComment(
+        user.accountId,
+        publicAchievementId,
+        data,
+      );
+    return Response.of(result);
+  }
   // @Post('/:publicAchievementId/enter')
   // async enterPublicAchievement() {}
 

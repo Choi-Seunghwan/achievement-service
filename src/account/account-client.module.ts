@@ -2,6 +2,7 @@
 
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { AccountClientService } from './account-client.service';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  exports: [ClientsModule],
+  providers: [AccountClientService],
+  exports: [ClientsModule, AccountClientService],
 })
 export class AccountClientModule {}

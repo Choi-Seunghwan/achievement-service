@@ -8,14 +8,19 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { MissionService } from 'src/mission/mission.service';
 import { PublicMissionTaskService } from 'src/public-mission-task/public-mission-task.service';
 import { AchievementService } from 'src/achievement/achievement.service';
+import { PublicAchievementCommentRepository } from './public-achievement-comment.repository.';
+import { AccountClientService } from 'src/account/account-client.service';
+import { PublicAchievementCommentResDto } from './dtos/public-achievement-comment-res.dto';
 
 @Injectable()
 export class PublicAchievementService {
   constructor(
     private readonly publicAchievementRepository: PublicAchievementRepository,
+    private readonly publicAchievementCommentRepository: PublicAchievementCommentRepository,
     private readonly publicMissionTaskService: PublicMissionTaskService,
     private readonly achievementService: AchievementService,
     private readonly missionService: MissionService,
+    private readonly accountService: AccountClientService,
   ) {}
 
   @Transactional()
@@ -159,5 +164,60 @@ export class PublicAchievementService {
     }
 
     return publicAchievement;
+  }
+
+  async getPublicAchievementComments(
+    id: number,
+    { page, size }: { page: number; size: number },
+  ): Promise<PublicAchievementCommentResDto[]> {
+    const comments =
+      await this.publicAchievementCommentRepository.getPublicAchievementCommentsWithPaging(
+        {
+          where: { publicAchievementId: id },
+        },
+        { page, size },
+      );
+
+    const accounts = await this.accountService.getUsersInfo(
+      comments.map((c) => c.accountId),
+    );
+
+    return comments.map((c) => {
+      const account = accounts.find((a) => a.id === c.accountId) || null;
+
+      return {
+        id: c.id,
+        publicAchievementId: c.publicAchievementId,
+        accountId: c.accountId,
+        account,
+        comment: c.comment,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      };
+    });
+  }
+
+  async createPublicAchievementComment(
+    accountId: number,
+    publicAchievementId: number,
+    data: { comment: string },
+  ) {
+    const publicAchievement =
+      await this.publicAchievementRepository.getPublicAchievement({
+        where: { id: publicAchievementId },
+      });
+
+    if (!publicAchievement)
+      throw new NotFoundException('Public Achievement not found');
+
+    await this.publicAchievementCommentRepository.createPublicAchievementComment(
+      {
+        accountId,
+        publicAchievement: {
+          connect: { id: publicAchievementId },
+        },
+        comment: data.comment,
+      },
+    );
   }
 }

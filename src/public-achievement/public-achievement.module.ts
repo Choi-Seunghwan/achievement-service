@@ -5,10 +5,21 @@ import { PublicAchievementService } from './public-achievement.service';
 import { PublicAchievementRepository } from './public-achievement.repository';
 import { PublicMissionTaskModule } from 'src/public-mission-task/public-mission-task.module';
 import { AchievementModule } from 'src/achievement/achievement.module';
+import { PublicAchievementCommentRepository } from './public-achievement-comment.repository.';
+import { AccountClientModule } from 'src/account/account-client.module';
 
 @Module({
-  imports: [MissionModule, PublicMissionTaskModule, AchievementModule],
+  imports: [
+    MissionModule,
+    PublicMissionTaskModule,
+    AchievementModule,
+    AccountClientModule,
+  ],
   controllers: [PublicAchievementController],
-  providers: [PublicAchievementService, PublicAchievementRepository],
+  providers: [
+    PublicAchievementService,
+    PublicAchievementRepository,
+    PublicAchievementCommentRepository,
+  ],
 })
 export class PublicAchievementModule {}
