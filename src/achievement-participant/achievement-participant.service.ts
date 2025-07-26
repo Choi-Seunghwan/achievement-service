@@ -45,4 +45,14 @@ export class AchievementParticipantService {
       achievementId,
     );
   }
+
+  async getParticipant(accountId: number, publicAchievementId: number) {
+    const participant =
+      await this.achievementParticipantRepository.getPublicParticipant(
+        accountId,
+        publicAchievementId,
+      );
+
+    return participant;
+  }
 }

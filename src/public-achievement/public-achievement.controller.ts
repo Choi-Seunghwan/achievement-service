@@ -111,8 +111,19 @@ export class PublicAchievementController {
       );
     return Response.of(result);
   }
-  // @Post('/:publicAchievementId/enter')
-  // async enterPublicAchievement() {}
+
+  @Post('/:publicAchievementId/join')
+  @UseGuards(AuthGuard)
+  async joinPublicAchievement(
+    @User() user: JwtPayload,
+    @Param('publicAchievementId') publicAchievementId: number,
+  ) {
+    const res = await this.publicAchievementService.joinPublicAchievement(
+      user.accountId,
+      publicAchievementId,
+    );
+    return Response.of(res);
+  }
 
   // @Post('/:publicAchievementId/leave')
   // async leavePublicAchievement() {}

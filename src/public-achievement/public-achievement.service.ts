@@ -11,6 +11,7 @@ import { AchievementService } from 'src/achievement/achievement.service';
 import { PublicAchievementCommentRepository } from './public-achievement-comment.repository.';
 import { AccountClientService } from 'src/account/account-client.service';
 import { PublicAchievementCommentResDto } from './dtos/public-achievement-comment-res.dto';
+import { AchievementParticipantService } from 'src/achievement-participant/achievement-participant.service';
 
 @Injectable()
 export class PublicAchievementService {
@@ -21,6 +22,7 @@ export class PublicAchievementService {
     private readonly achievementService: AchievementService,
     private readonly missionService: MissionService,
     private readonly accountService: AccountClientService,
+    private readonly achievementParticipantService: AchievementParticipantService,
   ) {}
 
   @Transactional()
@@ -219,5 +221,33 @@ export class PublicAchievementService {
         comment: data.comment,
       },
     );
+  }
+
+  async joinPublicAchievement(accountId: number, publicAchievementId: number) {
+    const publicAchievement =
+      await this.publicAchievementRepository.getPublicAchievement({
+        where: { id: publicAchievementId },
+      });
+
+    if (!publicAchievement) {
+      throw new NotFoundException('Public Achievement not found');
+    }
+
+    const existingParticipant =
+      await this.achievementParticipantService.getParticipant(
+        accountId,
+        publicAchievementId,
+      );
+
+    if (existingParticipant) {
+      throw new BadRequestException('Already joined this public achievement');
+    }
+
+    await this.achievementParticipantService.joinPublicAchievement(
+      accountId,
+      publicAchievementId,
+    );
+
+    return true;
   }
 }
