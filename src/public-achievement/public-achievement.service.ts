@@ -12,6 +12,8 @@ import { PublicAchievementCommentRepository } from './public-achievement-comment
 import { AccountClientService } from 'src/account/account-client.service';
 import { PublicAchievementCommentResDto } from './dtos/public-achievement-comment-res.dto';
 import { AchievementParticipantService } from 'src/achievement-participant/achievement-participant.service';
+import { PublicAchievementResDto } from './dtos/public-achievement-res.dto';
+import toPublicAchievementResDto from './utils/toPublicAchievementResDto';
 
 @Injectable()
 export class PublicAchievementService {
@@ -94,7 +96,6 @@ export class PublicAchievementService {
     // 유저 개인 업적 생성
     const achievement =
       await this.achievementService.createAchievementWithPublicData(accountId, {
-        publicMissionIds: publicMissions.map((m) => m.id),
         name: publicAchievement.name,
         description: publicAchievement.description,
         icon: publicAchievement.icon,
@@ -122,7 +123,10 @@ export class PublicAchievementService {
     accountId: number,
     paging: { page: number; size: number },
     keyword?: string,
-  ) {
+  ): Promise<{
+    items: PublicAchievementResDto[];
+    total: number;
+  }> {
     const whereArg = {
       name: {
         contains: keyword,
@@ -136,7 +140,27 @@ export class PublicAchievementService {
       paging,
     );
 
-    return result;
+    const userParticipatingAchievements =
+      await this.achievementParticipantService.getUserParticipating(
+        accountId,
+        result.items.map((item) => item.id),
+      );
+
+    const userParticipatingAchievementIds = new Set(
+      userParticipatingAchievements.map((p) => p.publicAchievementId),
+    );
+
+    const resItems = result.items.map((item) =>
+      toPublicAchievementResDto(
+        item,
+        userParticipatingAchievementIds.has(item.id),
+      ),
+    );
+
+    return {
+      ...result,
+      items: resItems,
+    };
   }
 
   async getPopularPublicAchievements() {
@@ -243,7 +267,54 @@ export class PublicAchievementService {
       throw new BadRequestException('Already joined this public achievement');
     }
 
+    await this.missionService.createMissionsWithPublicData(
+      accountId,
+      publicAchievement.missions.map((m) => ({
+        publicMissionId: m.id,
+        name: m.name,
+        icon: m.icon,
+        repeatType: m.repeatType,
+        repeatDays: m.repeatDays,
+        description: m.description,
+      })),
+    );
+
+    await this.achievementService.createAchievementWithPublicData(accountId, {
+      name: publicAchievement.name,
+      description: publicAchievement.description,
+      icon: publicAchievement.icon,
+      publicAchievementId: publicAchievement.id,
+    });
+
     await this.achievementParticipantService.joinPublicAchievement(
+      accountId,
+      publicAchievementId,
+    );
+
+    return true;
+  }
+
+  async leavePublicAchievement(accountId: number, publicAchievementId: number) {
+    const publicAchievement =
+      await this.publicAchievementRepository.getPublicAchievement({
+        where: { id: publicAchievementId },
+      });
+
+    if (!publicAchievement) {
+      throw new NotFoundException('Public Achievement not found');
+    }
+
+    const existingParticipant =
+      await this.achievementParticipantService.getParticipant(
+        accountId,
+        publicAchievementId,
+      );
+
+    if (!existingParticipant) {
+      throw new BadRequestException('Not a participant of this achievement');
+    }
+
+    await this.achievementParticipantService.leavePublicAchievement(
       accountId,
       publicAchievementId,
     );

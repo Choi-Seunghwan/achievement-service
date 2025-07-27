@@ -7,10 +7,25 @@ export class AchievementParticipantRepository {
 
   async getPublicParticipant(accountId: number, publicAchievementId: number) {
     return await this.prismaService.achievementParticipant.findFirst({
-      where: { accountId, publicAchievementId },
+      where: { accountId, publicAchievementId, leavedAt: null },
       orderBy: {
         jointedAt: 'desc',
       },
+    });
+  }
+
+  // 유저가 공개 업적들에 참여 중인지 확인
+  async getUserParticipating(
+    accountId: number,
+    publicAchievementIds: number[],
+  ) {
+    return await this.prismaService.achievementParticipant.findMany({
+      where: {
+        accountId,
+        publicAchievementId: { in: publicAchievementIds },
+        leavedAt: null,
+      },
+      select: { publicAchievementId: true },
     });
   }
 

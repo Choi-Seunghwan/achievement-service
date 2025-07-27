@@ -31,7 +31,6 @@ export class AchievementService {
   async createAchievementWithPublicData(
     accountId: number,
     data: {
-      publicMissionIds: number[];
       name: string;
       description?: string;
       icon?: string;

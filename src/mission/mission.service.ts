@@ -250,6 +250,33 @@ export class MissionService {
     return true;
   }
 
+  async createMissionsWithPublicData(
+    accountId: number,
+    data: {
+      publicMissionId: number;
+      icon?: string;
+      name: string;
+      repeatType?: MissionRepeatType;
+      repeatDays?: MissionRepeatDay[];
+
+      description?: string;
+    }[],
+  ) {
+    return await this.missionRepository.createMissions({
+      data: data.map((d) => ({
+        accountId,
+        name: d.name,
+        description: d.description,
+        icon: d.icon,
+        repeatType: d.repeatType,
+        repeatDays: d.repeatDays,
+        publicMission: {
+          connect: { id: d.publicMissionId },
+        },
+      })),
+    });
+  }
+
   /**
    * 반복 미션 종결(완료)
    */

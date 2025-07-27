@@ -75,6 +75,12 @@ export class MissionRepository {
     return await this.prisma.mission.create(args);
   }
 
+  async createMissions(args: Prisma.MissionCreateManyArgs) {
+    return await this.prisma.mission.createMany({
+      ...args,
+    });
+  }
+
   async updateMission(args: Prisma.MissionUpdateArgs) {
     return await this.prisma.mission.update({
       ...args,
