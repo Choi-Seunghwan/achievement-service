@@ -252,27 +252,26 @@ export class MissionService {
 
   async createMissionsWithPublicData(
     accountId: number,
+    achievementId: number,
     data: {
       publicMissionId: number;
       icon?: string;
       name: string;
       repeatType?: MissionRepeatType;
       repeatDays?: MissionRepeatDay[];
-
       description?: string;
     }[],
   ) {
     return await this.missionRepository.createMissions({
       data: data.map((d) => ({
         accountId,
+        achievementId,
         name: d.name,
         description: d.description,
         icon: d.icon,
         repeatType: d.repeatType,
         repeatDays: d.repeatDays,
-        publicMission: {
-          connect: { id: d.publicMissionId },
-        },
+        publicMissionId: d.publicMissionId,
       })),
     });
   }

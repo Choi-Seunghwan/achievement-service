@@ -179,7 +179,11 @@ export class PublicAchievementService {
     );
   }
 
-  async getPublicAchievement(accountId: number, id: number) {
+  // 공개 업적 상세 조회
+  async getPublicAchievement(
+    accountId: number,
+    id: number,
+  ): Promise<PublicAchievementResDto> {
     const publicAchievement =
       await this.publicAchievementRepository.getPublicAchievement({
         where: { id },
@@ -189,7 +193,21 @@ export class PublicAchievementService {
       throw new NotFoundException('Public Achievement not found');
     }
 
-    return publicAchievement;
+    const userParticipating =
+      await this.achievementParticipantService.getUserParticipating(accountId, [
+        publicAchievement.id,
+      ]);
+
+    const isParticipating = userParticipating.some(
+      (p) => p.publicAchievementId === publicAchievement.id,
+    );
+
+    const resDto = toPublicAchievementResDto(
+      publicAchievement,
+      isParticipating,
+    );
+
+    return resDto;
   }
 
   async getPublicAchievementComments(
@@ -247,6 +265,7 @@ export class PublicAchievementService {
     );
   }
 
+  @Transactional()
   async joinPublicAchievement(accountId: number, publicAchievementId: number) {
     const publicAchievement =
       await this.publicAchievementRepository.getPublicAchievement({
@@ -267,8 +286,17 @@ export class PublicAchievementService {
       throw new BadRequestException('Already joined this public achievement');
     }
 
+    const achievement =
+      await this.achievementService.createAchievementWithPublicData(accountId, {
+        name: publicAchievement.name,
+        description: publicAchievement.description,
+        icon: publicAchievement.icon,
+        publicAchievementId: publicAchievement.id,
+      });
+
     await this.missionService.createMissionsWithPublicData(
       accountId,
+      achievement.id,
       publicAchievement.missions.map((m) => ({
         publicMissionId: m.id,
         name: m.name,
@@ -278,13 +306,6 @@ export class PublicAchievementService {
         description: m.description,
       })),
     );
-
-    await this.achievementService.createAchievementWithPublicData(accountId, {
-      name: publicAchievement.name,
-      description: publicAchievement.description,
-      icon: publicAchievement.icon,
-      publicAchievementId: publicAchievement.id,
-    });
 
     await this.achievementParticipantService.joinPublicAchievement(
       accountId,
