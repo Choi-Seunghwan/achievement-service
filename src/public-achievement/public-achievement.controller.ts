@@ -12,6 +12,7 @@ import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import { CreatePublicAchievementDto } from './dtos/create-public-achievement.dto';
 import { GetPublicAchievementsDto } from './dtos/get-public-achievements.dto';
 import { PagingResponse, Response } from '@choi-seunghwan/api-util';
+import { getPublicAchievementCommentDto } from './dtos/get-public-achievement-comment.dto';
 
 @Controller('public-achievements')
 export class PublicAchievementController {
@@ -85,15 +86,21 @@ export class PublicAchievementController {
   @Get('/:publicAchievementId/comments')
   @UseGuards(AuthGuard)
   async getPublicAchievementComments(
+    @User() user: JwtPayload,
     @Param('publicAchievementId') publicAchievementId: number,
-    @Query() query: { page: number; size: number },
+    @Query() query: getPublicAchievementCommentDto,
   ) {
     const result =
-      await this.publicAchievementService.getPublicAchievementComments(
+      await this.publicAchievementService.getPublicAchievementCommentsWithPaging(
         publicAchievementId,
         query,
       );
-    return Response.of(result);
+    return PagingResponse.of(
+      result.items,
+      result.total,
+      query.page,
+      query.size,
+    );
   }
 
   @Post('/:publicAchievementId/comments')

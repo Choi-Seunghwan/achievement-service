@@ -210,11 +210,11 @@ export class PublicAchievementService {
     return resDto;
   }
 
-  async getPublicAchievementComments(
+  async getPublicAchievementCommentsWithPaging(
     id: number,
     { page, size }: { page: number; size: number },
-  ): Promise<PublicAchievementCommentResDto[]> {
-    const comments =
+  ): Promise<{ items: PublicAchievementCommentResDto[]; total: number }> {
+    const result =
       await this.publicAchievementCommentRepository.getPublicAchievementCommentsWithPaging(
         {
           where: { publicAchievementId: id },
@@ -223,22 +223,27 @@ export class PublicAchievementService {
       );
 
     const accounts = await this.accountService.getUsersInfo(
-      comments.map((c) => c.accountId),
+      result.items.map((comment) => comment.accountId),
     );
 
-    return comments.map((c) => {
-      const account = accounts.find((a) => a.id === c.accountId) || null;
-
+    const items = result.items.map((comment) => {
+      const account = accounts.find((a) => a.id === comment.accountId);
       return {
-        id: c.id,
-        publicAchievementId: c.publicAchievementId,
-        accountId: c.accountId,
-        account,
-        comment: c.comment,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
+        ...comment,
+        account: {
+          id: account.id,
+          nickname: account.nickname,
+          email: account.email,
+          createdAt: account.createdAt,
+          updatedAt: account.updatedAt,
+        },
       };
     });
+
+    return {
+      items,
+      total: result.total,
+    };
   }
 
   async createPublicAchievementComment(

@@ -25,13 +25,22 @@ export class PublicAchievementCommentRepository {
     args: Prisma.PublicAchievementCommentFindManyArgs,
     paging: { page: number; size: number },
   ) {
-    return this.prismaService.publicAchievementComment.findMany({
+    const items = await this.prismaService.publicAchievementComment.findMany({
       ...args,
       where: { ...args.where, deletedAt: null },
       skip: (paging.page - 1) * paging.size,
       take: paging.size,
       orderBy: args.orderBy || { createdAt: 'desc' },
     });
+
+    const total = await this.prismaService.publicAchievementComment.count({
+      where: { ...args.where, deletedAt: null },
+    });
+
+    return {
+      items,
+      total,
+    };
   }
 
   async getPublicAchievementComment(
