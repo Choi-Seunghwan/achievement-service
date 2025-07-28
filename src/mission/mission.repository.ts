@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { MissionStatus, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
@@ -154,5 +154,28 @@ export class MissionRepository {
       ...args,
       where: { ...args.where, deletedAt: null },
     });
+  }
+  async getMissionCount(accountId: number) {
+    const [inProgressCount, completedCount] = await Promise.all([
+      this.prisma.mission.count({
+        where: {
+          accountId,
+          status: MissionStatus.IN_PROGRESS,
+          deletedAt: null,
+        },
+      }),
+      this.prisma.mission.count({
+        where: {
+          accountId,
+          status: MissionStatus.COMPLETED,
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    return {
+      inProgressCount,
+      completedCount,
+    };
   }
 }

@@ -11,6 +11,7 @@ import { AchievementModule } from './achievement/achievement.module';
 import { PublicAchievementModule } from './public-achievement/public-achievement.module';
 import { PublicMissionTaskModule } from './public-mission-task/public-mission-task.module';
 import { AchievementParticipantModule } from './achievement-participant/achievement-participant.module';
+import { InfoModule } from './info/info.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AchievementParticipantModule } from './achievement-participant/achievem
     PublicAchievementModule,
     PublicMissionTaskModule,
     AchievementParticipantModule,
+    InfoModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

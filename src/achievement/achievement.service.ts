@@ -6,6 +6,10 @@ import { AchievementStatus, MissionStatus } from '@prisma/client';
 export class AchievementService {
   constructor(private readonly achievementRepository: AchievementRepository) {}
 
+  async getUserAchievementCount(accountId: number) {
+    return await this.achievementRepository.getAchievementCount(accountId);
+  }
+
   async createAchievement(
     accountId: number,
     data: {

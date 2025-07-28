@@ -51,4 +51,25 @@ export class AchievementRepository {
       data,
     });
   }
+
+  async getAchievementCount(accountId: number) {
+    const [inProgressCount, completedCount] = await Promise.all([
+      this.prismaService.achievement.count({
+        where: {
+          accountId,
+          status: AchievementStatus.IN_PROGRESS,
+          deletedAt: null,
+        },
+      }),
+      this.prismaService.achievement.count({
+        where: {
+          accountId,
+          status: AchievementStatus.COMPLETED,
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    return { inProgressCount, completedCount };
+  }
 }

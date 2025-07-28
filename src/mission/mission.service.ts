@@ -26,6 +26,10 @@ export class MissionService {
     private readonly tagService: TagService,
   ) {}
 
+  async getUserMissionCount(accountId: number) {
+    return await this.missionRepository.getMissionCount(accountId);
+  }
+
   /**
    * 사용자 활성 미션 목록 가져오기
    */
