@@ -647,6 +647,72 @@ export class MissionService {
     return true;
   }
 
+  /**
+   * 미션 Task 완료 취소
+   */
+
+  @Transactional()
+  async cancelMissionTaskCompletion(
+    accountId: number,
+    missionId: number,
+    taskId: number,
+  ) {
+    const mission = await this.getMission(accountId, missionId);
+
+    const task = mission.missionTasks.find((task) => task.id === taskId);
+
+    if (!task) throw new NotFoundException('task not found');
+
+    if (mission.status === MissionStatus.COMPLETED)
+      throw new BadRequestException('mission already completed');
+
+    const todayHistories = await this.missionRepository.getMissionHistories({
+      where: {
+        missionId,
+        taskId,
+        createdAt: {
+          gte: startOfDay(new Date()),
+        },
+      },
+    });
+
+    if (!todayHistories?.[0]?.completed)
+      throw new BadRequestException('today not completed');
+
+    switch (mission.repeatType) {
+      case MissionRepeatType.NONE:
+        break;
+      case MissionRepeatType.DAILY:
+      case MissionRepeatType.WEEKLY: {
+        const todayWeekdayEnum = weekdayMap[startOfDay(new Date()).getDay()];
+
+        if (!mission.repeatDays.includes(todayWeekdayEnum))
+          throw new BadRequestException('today not repeat day');
+        break;
+      }
+    }
+
+    if (task.status === MissionTaskStatus.COMPLETED) {
+      await this.missionRepository.updateMissionTask(missionId, taskId, {
+        status: MissionTaskStatus.IN_PROGRESS,
+      });
+    }
+
+    await this.missionRepository.createMissionHistory({
+      data: {
+        completed: false,
+        missionId,
+        taskId,
+        taskSnapshot: {
+          id: task.id,
+          name: task.name,
+        },
+      },
+    });
+
+    return true;
+  }
+
   async getAvailableMissionsForAchievement(accountId: number) {
     return await this.missionRepository.getMissions({
       where: {

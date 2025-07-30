@@ -234,14 +234,20 @@ export class MissionController {
     return Response.of(result);
   }
 
-  /**
-   * mission task 수정
-   */
-  @Post('/:missionId/tasks/:taskId/update')
+  @Post('/:missionId/tasks/:taskId/cancel-completion')
   @UseGuards(AuthGuard)
-  async updateTask() {
-    // @Body() dto: any, // @Param() taskId: TaskIdParam, // @Param() param: MissionIdParam, // @User() user: JwtPayload,
-    //
+  async cancelTaskCompletion(
+    @User() user: JwtPayload,
+    @Param() missionId: MissionIdParam,
+    @Param() taskId: TaskIdParam,
+  ) {
+    const result = await this.missionService.cancelMissionTaskCompletion(
+      user.accountId,
+      missionId.missionId,
+      taskId.taskId,
+    );
+
+    return Response.of(result);
   }
 
   /**

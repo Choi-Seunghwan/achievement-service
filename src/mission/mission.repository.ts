@@ -127,6 +127,7 @@ export class MissionRepository {
     return await this.prisma.missionHistory.findMany({
       ...args,
       where: { ...args.where },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
