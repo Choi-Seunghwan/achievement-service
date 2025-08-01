@@ -49,7 +49,7 @@ export class MissionService {
           },
           {
             accountId,
-            status: MissionStatus.COMPLETED,
+            status: { not: MissionStatus.COMPLETED },
             missionHistory: {
               some: {
                 createdAt: { gte: todayStart },
@@ -130,10 +130,6 @@ export class MissionService {
     return await this.missionRepository.getMissionsWithPaging(
       {
         where: { accountId: args.accountId, status: args.status },
-        include: {
-          missionTasks: true,
-          missionTags: { include: { tag: true }, where: { deletedAt: null } },
-        },
       },
       paging,
     );
@@ -327,36 +323,48 @@ export class MissionService {
       );
     }
 
-    if (data?.tasks?.length) {
-      // 미션 Task 업데이트
-      const tasks = data.tasks.map((task) => {
-        // Task가 존재하고, 이름이 변경되었으면 업데이트
-        if (task.id && mission.missionTasks.some((t) => t.id === task.id)) {
+    // 미션 Task 업데이트
+    if (mission.missionTasks.length) {
+      const originalTasks = mission.missionTasks;
+
+      const promiseTasks = originalTasks.map((task) => {
+        const dataTask = data.tasks?.find((t) => t.id === task.id);
+
+        // Task 이름 업데이트
+        if (dataTask && dataTask.name !== task.name) {
           return this.missionRepository.updateMissionTask(missionId, task.id, {
-            name: task.name,
+            name: dataTask.name,
           });
         }
-        // Task가 존재하지 않으면 삭제 처리
-        else if (
-          task.id &&
-          !mission.missionTasks.some((t) => t.id === task.id)
-        ) {
+        // Task 삭제
+        else if (!dataTask) {
           return this.missionRepository.updateMissionTask(missionId, task.id, {
             deletedAt: new Date(),
           });
         }
-        // 새 Task 생성
-        else {
-          return this.missionRepository.createMissionTask({
-            data: {
-              missionId,
-              name: task.name,
-            },
-          });
-        }
+
+        return null;
       });
 
-      await Promise.all(tasks);
+      // 기존에 없는 Task 생성
+      if (data.tasks) {
+        const toAddTasks = data.tasks.filter(
+          (task) => !originalTasks.some((t) => t.id === task.id),
+        );
+
+        promiseTasks.push(
+          ...toAddTasks.map((task) =>
+            this.missionRepository.createMissionTask({
+              data: {
+                missionId,
+                name: task.name,
+              },
+            }),
+          ),
+        );
+      }
+
+      await Promise.all(promiseTasks);
     }
 
     // 미션 태그 업데이트
@@ -549,7 +557,20 @@ export class MissionService {
 
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
-      data: { status: MissionStatus.COMPLETED },
+      data: {
+        status: MissionStatus.COMPLETED,
+        missionTasks: {
+          updateMany: {
+            where: { deletedAt: null },
+            data: { status: MissionTaskStatus.COMPLETED },
+          },
+        },
+        missionHistory: {
+          create: {
+            completed: true,
+          },
+        },
+      },
     });
 
     return true;
@@ -719,6 +740,7 @@ export class MissionService {
         accountId,
         achievement: null,
         publicMission: null,
+        status: MissionStatus.IN_PROGRESS,
         deletedAt: null,
       },
     });

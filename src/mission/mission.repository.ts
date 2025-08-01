@@ -19,7 +19,7 @@ export class MissionRepository {
       skip: (paging.page - 1) * paging.size,
       take: paging.size,
       where: { ...args.where, deletedAt: null },
-      include: { ...args.include },
+      include: this.getMissionsIncludeArgs(),
       orderBy: { createdAt: 'desc', ...args.orderBy },
       omit: { ...args.omit, deletedAt: true },
     });
@@ -31,42 +31,37 @@ export class MissionRepository {
     return await this.prisma.mission.findMany({
       ...args,
       where: { ...args.where, deletedAt: null },
-      include: {
-        missionTasks: {
-          orderBy: {
-            id: 'asc',
-          },
-          where: {
-            deletedAt: null,
-          },
-        },
-        missionTags: {
-          include: { tag: true },
-          where: {
-            deletedAt: null,
-          },
-        },
-        achievement: { where: { deletedAt: null } },
-        publicMission: { where: { deletedAt: null } },
-        ...args.include,
-      },
+      include: this.getMissionsIncludeArgs(),
       orderBy: { createdAt: 'desc', ...args.orderBy },
       omit: { ...args.omit, deletedAt: true },
     });
+  }
+
+  getMissionsIncludeArgs(): Prisma.MissionInclude {
+    return {
+      missionTasks: {
+        orderBy: {
+          id: 'asc',
+        },
+        where: {
+          deletedAt: null,
+        },
+      },
+      missionTags: {
+        include: { tag: true },
+        where: {
+          deletedAt: null,
+        },
+      },
+      achievement: { where: { deletedAt: null } },
+    };
   }
 
   async getMission(args: Prisma.MissionFindUniqueArgs) {
     return await this.prisma.mission.findUnique({
       ...args,
       where: { ...args.where, deletedAt: null },
-      include: {
-        ...args.include,
-        missionTasks: {
-          where: { deletedAt: null },
-        },
-        missionTags: { include: { tag: true }, where: { deletedAt: null } },
-        achievement: { where: { deletedAt: null } },
-      },
+      include: this.getMissionsIncludeArgs(),
       omit: { ...args.omit, deletedAt: true },
     });
   }
