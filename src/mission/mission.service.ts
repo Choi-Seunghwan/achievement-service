@@ -179,13 +179,14 @@ export class MissionService {
         `mission not found (accountId: ${accountId}, missionId: ${missionId})`,
       );
 
-    const taskTodayMap = new Map<number, boolean>();
-    let missionTodayCompleted = false;
+    // 미션 완료 여부
+    const missionHistory = todayHistories.find((h) => h.taskId === null);
+    const missionTodayCompleted = missionHistory?.completed ?? false;
 
+    // 테스크 완료 여부
+    const taskTodayMap = new Map<number, boolean>();
     for (const h of todayHistories) {
-      if (h.taskId === null) {
-        missionTodayCompleted ||= h.completed;
-      } else if (!taskTodayMap.has(h.taskId)) {
+      if (h.taskId !== null && !taskTodayMap.has(h.taskId)) {
         taskTodayMap.set(h.taskId, h.completed);
       }
     }
