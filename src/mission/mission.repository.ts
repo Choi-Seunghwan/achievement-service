@@ -80,6 +80,7 @@ export class MissionRepository {
     return await this.prisma.mission.update({
       ...args,
       where: { ...args.where, deletedAt: null },
+      data: { ...args.data, updatedAt: new Date() },
     });
   }
 
@@ -137,7 +138,7 @@ export class MissionRepository {
   ) {
     return await this.prisma.missionTask.update({
       where: { id: taskId, deletedAt: null },
-      data,
+      data: { ...data, updatedAt: new Date() },
     });
   }
 
@@ -149,6 +150,7 @@ export class MissionRepository {
     return await this.prisma.mission.updateMany({
       ...args,
       where: { ...args.where, deletedAt: null },
+      data: { ...args.data, updatedAt: new Date() },
     });
   }
   async getMissionCount(accountId: number) {

@@ -324,7 +324,7 @@ export class MissionService {
     }
 
     // 미션 Task 업데이트
-    if (mission.missionTasks.length) {
+    if (mission.missionTasks?.length > 0 || (data.tasks ?? []).length > 0) {
       const originalTasks = mission.missionTasks;
 
       const promiseTasks = originalTasks.map((task) => {
@@ -397,8 +397,11 @@ export class MissionService {
         icon: data.icon,
         repeatType: data.repeatType,
         repeatDays: data.repeatDays,
+        updatedAt: new Date(),
       },
     });
+
+    return true;
   }
 
   /**
@@ -580,9 +583,25 @@ export class MissionService {
    * 미션 삭제
    */
   async deleteMission(accountId: number, missionId: number) {
+    const mission = await this.getMission(accountId, missionId);
+
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
-      data: { deletedAt: new Date() },
+      data: {
+        deletedAt: new Date(),
+        missionTasks: {
+          updateMany: {
+            where: { deletedAt: null },
+            data: { deletedAt: new Date() },
+          },
+        },
+        missionTags: {
+          updateMany: {
+            where: { deletedAt: null },
+            data: { deletedAt: new Date() },
+          },
+        },
+      },
     });
 
     return true;

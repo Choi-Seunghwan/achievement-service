@@ -58,6 +58,7 @@ export class PublicAchievementCommentRepository {
     return this.prismaService.publicAchievementComment.update({
       ...args,
       where: { ...args.where, deletedAt: null },
+      data: { ...args.data, updatedAt: new Date() },
     });
   }
 }

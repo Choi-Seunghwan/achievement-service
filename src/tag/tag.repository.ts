@@ -11,18 +11,31 @@ export class TagRepository {
   }
 
   async getTagCount(args: Prisma.TagCountArgs) {
-    return await this.prisma.tag.count(args);
+    return await this.prisma.tag.count({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+    });
   }
 
   async getTags(args: Prisma.TagFindManyArgs) {
-    return await this.prisma.tag.findMany(args);
+    return await this.prisma.tag.findMany({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+    });
   }
 
   async getTag(args: Prisma.TagFindUniqueArgs) {
-    return await this.prisma.tag.findUnique(args);
+    return await this.prisma.tag.findUnique({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+    });
   }
 
   async updateTag(args: Prisma.TagUpdateArgs) {
-    return await this.prisma.tag.update(args);
+    return await this.prisma.tag.update({
+      ...args,
+      where: { ...args.where, deletedAt: null },
+      data: { ...args.data, updatedAt: new Date() },
+    });
   }
 }

@@ -48,7 +48,7 @@ export class AchievementRepository {
   ) {
     return await this.prismaService.achievement.update({
       where: { id: achievementId, deletedAt: null },
-      data,
+      data: { ...data, updatedAt: new Date() },
     });
   }
 
