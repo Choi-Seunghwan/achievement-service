@@ -42,13 +42,24 @@ export class MissionService {
     // 오늘 기준 미션 조회
     const missions = await this.missionRepository.getMissions({
       where: {
+        accountId,
         OR: [
           {
-            accountId,
+            // 진행 중 미션
             status: MissionStatus.IN_PROGRESS,
           },
           {
-            accountId,
+            // 오늘 완료 미션
+            status: MissionStatus.COMPLETED,
+            repeatType: MissionRepeatType.NONE,
+            missionHistory: {
+              some: {
+                createdAt: { gte: todayStart },
+              },
+            },
+          },
+          {
+            // 진행 중 반복 미션
             status: { not: MissionStatus.COMPLETED },
             missionHistory: {
               some: {
@@ -484,6 +495,7 @@ export class MissionService {
   /**
    * 미션 완료 취소
    */
+  @Transactional()
   async cancelMissionCompletion(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
 
@@ -518,9 +530,10 @@ export class MissionService {
                 gte: startOfDay(new Date()),
               },
             },
+            orderBy: { createdAt: 'desc' },
           });
 
-        if (!todayCompletedHistory || !todayCompletedHistory.completed)
+        if (!todayCompletedHistory?.completed && mission.status !== 'COMPLETED')
           throw new BadRequestException('today mission not completed');
 
         await this.missionRepository.updateMission({
@@ -623,7 +636,7 @@ export class MissionService {
   }
 
   /** 미션 Task 완료 */
-
+  @Transactional()
   async completeMissionTask(
     accountId: number,
     missionId: number,
@@ -717,7 +730,7 @@ export class MissionService {
       },
     });
 
-    if (!todayHistories?.[0]?.completed)
+    if (task.status !== 'COMPLETED' && !todayHistories?.[0]?.completed)
       throw new BadRequestException('today not completed');
 
     switch (mission.repeatType) {
@@ -725,10 +738,10 @@ export class MissionService {
         break;
       case MissionRepeatType.DAILY:
       case MissionRepeatType.WEEKLY: {
-        const todayWeekdayEnum = weekdayMap[startOfDay(new Date()).getDay()];
+        // const todayWeekdayEnum = weekdayMap[startOfDay(new Date()).getDay()];
 
-        if (!mission.repeatDays.includes(todayWeekdayEnum))
-          throw new BadRequestException('today not repeat day');
+        // if (!mission.repeatDays.includes(todayWeekdayEnum))
+        //   throw new BadRequestException('today not repeat day');
         break;
       }
     }
