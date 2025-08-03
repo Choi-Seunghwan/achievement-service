@@ -499,6 +499,10 @@ export class MissionService {
   async cancelMissionCompletion(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
 
+    // 업적이 완료된 미션은 취소할 수 없음
+    if (mission?.achievement?.status === 'COMPLETED')
+      throw new BadRequestException('achievement already completed');
+
     switch (mission.repeatType) {
       case MissionRepeatType.NONE: {
         if (mission.status !== MissionStatus.COMPLETED)
