@@ -12,6 +12,7 @@ import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { AchievementService } from './achievement.service';
 
 import { GetUserAchievementsDto } from './dto/get-user-achievements.dto';
+import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 
 @Controller('achievements')
 export class AchievementController {
@@ -32,7 +33,29 @@ export class AchievementController {
         missionIds: dto.missionIds,
       },
     );
-    return res;
+    return Response.of(res);
+  }
+
+  @Get('/active')
+  @UseGuards(AuthGuard)
+  async getActiveAchievements(@User() user: JwtPayload) {
+    const res = await this.achievementService.getUserActiveAchievements(
+      user.accountId,
+    );
+    return Response.of(res);
+  }
+
+  @Get('/:achievementId')
+  @UseGuards(AuthGuard)
+  async getAchievement(
+    @User() user: JwtPayload,
+    @Param('achievementId') achievementId: number,
+  ) {
+    const res = await this.achievementService.getAchievement(
+      user.accountId,
+      achievementId,
+    );
+    return Response.of(res);
   }
 
   @Get('/')
@@ -46,7 +69,7 @@ export class AchievementController {
       { page: query.page || 1, size: query.size || 10 },
       query.status || 'IN_PROGRESS',
     );
-    return res;
+    return PagingResponse.of(res.items, res.total, query.page, query.size);
   }
 
   @Post('/:achievementId/complete')
@@ -59,6 +82,6 @@ export class AchievementController {
       user.accountId,
       achievementId,
     );
-    return res;
+    return Response.of(res);
   }
 }

@@ -52,6 +52,17 @@ export class AchievementService {
     });
   }
 
+  async getAchievement(accountId: number, achievementId: number) {
+    return await this.achievementRepository.getUserAchievement(
+      accountId,
+      achievementId,
+    );
+  }
+
+  async getUserActiveAchievements(accountId: number) {
+    return await this.achievementRepository.getUserAchievements(accountId);
+  }
+
   async getUserAchievements(
     accountId: number,
     paging: { page: number; size: number },

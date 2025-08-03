@@ -10,6 +10,30 @@ export class AchievementRepository {
     return await this.prismaService.achievement.create(args);
   }
 
+  getIncludeArgs(): Prisma.AchievementInclude {
+    return {
+      missions: {
+        where: { deletedAt: null },
+      },
+      publicAchievement: {
+        where: {
+          deletedAt: null,
+        },
+      },
+    };
+  }
+
+  async getUserAchievements(accountId: number) {
+    return await this.prismaService.achievement.findMany({
+      where: {
+        accountId,
+        deletedAt: null,
+        status: AchievementStatus.IN_PROGRESS,
+      },
+      include: this.getIncludeArgs(),
+    });
+  }
+
   async getUserAchievementsWithPaging(
     accountId: number,
     status: AchievementStatus,
@@ -23,10 +47,7 @@ export class AchievementRepository {
       skip: (paging.page - 1) * paging.size,
       take: paging.size,
       orderBy: { createdAt: 'desc' },
-      include: {
-        missions: true,
-        publicAchievement: true,
-      },
+      include: this.getIncludeArgs(),
     });
 
     return { total, items };
@@ -35,10 +56,7 @@ export class AchievementRepository {
   async getUserAchievement(accountId: number, achievementId: number) {
     return await this.prismaService.achievement.findFirst({
       where: { id: achievementId, accountId, deletedAt: null },
-      include: {
-        missions: true,
-        publicAchievement: true,
-      },
+      include: this.getIncludeArgs(),
     });
   }
 
