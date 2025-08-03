@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AchievementRepository } from './achievement.repository';
 import { AchievementStatus, MissionStatus } from '@prisma/client';
+import { MissionView } from 'src/mission/view/mission-view';
 
 @Injectable()
 export class AchievementService {
@@ -60,7 +61,24 @@ export class AchievementService {
   }
 
   async getUserActiveAchievements(accountId: number) {
-    return await this.achievementRepository.getUserAchievements(accountId);
+    const achievements =
+      await this.achievementRepository.getUserAchievements(accountId);
+
+    // achievement 에서, mission todayCompleted 여부
+
+    const res = achievements.map((achievement) => {
+      return {
+        ...achievement,
+        missions: achievement.missions.map((mission) => {
+          return {
+            ...mission,
+            todayCompleted: mission?.missionHistories?.[0]?.completed === true,
+          };
+        }) as MissionView[],
+      };
+    });
+
+    return res;
   }
 
   async getUserAchievements(
@@ -68,11 +86,28 @@ export class AchievementService {
     paging: { page: number; size: number },
     status: AchievementStatus,
   ) {
-    return await this.achievementRepository.getUserAchievementsWithPaging(
-      accountId,
-      status,
-      paging,
-    );
+    const result =
+      await this.achievementRepository.getUserAchievementsWithPaging(
+        accountId,
+        status,
+        paging,
+      );
+
+    return {
+      total: result.total,
+      items: result.items.map((item) => {
+        return {
+          ...item,
+          missions: item.missions.map((mission) => {
+            return {
+              ...mission,
+              todayCompleted:
+                mission?.missionHistories?.[0]?.completed === true,
+            };
+          }) as MissionView[],
+        };
+      }),
+    };
   }
 
   async completeAchievement(accountId: number, achievementId: number) {
@@ -85,7 +120,9 @@ export class AchievementService {
 
     if (
       !achievement.missions.every(
-        (mission) => mission.status === MissionStatus.COMPLETED,
+        (mission) =>
+          mission.status === MissionStatus.COMPLETED ||
+          mission.missionHistories?.[0]?.completed === true,
       )
     )
       throw new BadRequestException('All missions are not completed');
@@ -93,6 +130,16 @@ export class AchievementService {
     await this.achievementRepository.updateAchievement(achievementId, {
       completedAt: new Date(),
       status: AchievementStatus.COMPLETED,
+      missions: {
+        updateMany: {
+          where: { deletedAt: null, status: MissionStatus.IN_PROGRESS },
+          data: {
+            status: MissionStatus.COMPLETED,
+            updatedAt: new Date(),
+            completedAt: new Date(),
+          },
+        },
+      },
     });
   }
 }

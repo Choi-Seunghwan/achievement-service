@@ -52,7 +52,7 @@ export class MissionService {
             // 오늘 완료 미션
             status: MissionStatus.COMPLETED,
             repeatType: MissionRepeatType.NONE,
-            missionHistory: {
+            missionHistories: {
               some: {
                 createdAt: { gte: todayStart },
               },
@@ -61,7 +61,7 @@ export class MissionService {
           {
             // 진행 중 반복 미션
             status: { not: MissionStatus.COMPLETED },
-            missionHistory: {
+            missionHistories: {
               some: {
                 createdAt: { gte: todayStart },
               },
@@ -586,7 +586,7 @@ export class MissionService {
             data: { status: MissionTaskStatus.COMPLETED },
           },
         },
-        missionHistory: {
+        missionHistories: {
           create: {
             completed: true,
           },

@@ -3,5 +3,5 @@ import { MissionTaskView } from './mission-task-view';
 
 export interface MissionView extends Mission {
   todayCompleted?: boolean;
-  missionTasks: MissionTaskView[];
+  missionTasks?: MissionTaskView[];
 }

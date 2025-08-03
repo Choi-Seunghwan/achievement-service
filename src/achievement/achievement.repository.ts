@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AchievementStatus, Prisma } from '@prisma/client';
+import { startOfDay } from 'date-fns';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
@@ -14,6 +15,25 @@ export class AchievementRepository {
     return {
       missions: {
         where: { deletedAt: null },
+        include: {
+          // missionTasks: {
+          //   where: {
+          //     deletedAt: null,
+          //   },
+          // },
+          missionHistories: {
+            where: {
+              createdAt: {
+                gte: startOfDay(new Date()),
+              },
+              taskId: null,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+        },
       },
       publicAchievement: {
         where: {
@@ -30,7 +50,35 @@ export class AchievementRepository {
         deletedAt: null,
         status: AchievementStatus.IN_PROGRESS,
       },
-      include: this.getIncludeArgs(),
+      include: {
+        missions: {
+          where: { deletedAt: null },
+          include: {
+            // missionTasks: {
+            //   where: {
+            //     deletedAt: null,
+            //   },
+            // },
+            missionHistories: {
+              where: {
+                createdAt: {
+                  gte: startOfDay(new Date()),
+                },
+                taskId: null,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
+        publicAchievement: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
     });
   }
 
@@ -47,7 +95,35 @@ export class AchievementRepository {
       skip: (paging.page - 1) * paging.size,
       take: paging.size,
       orderBy: { createdAt: 'desc' },
-      include: this.getIncludeArgs(),
+      include: {
+        missions: {
+          where: { deletedAt: null },
+          include: {
+            // missionTasks: {
+            //   where: {
+            //     deletedAt: null,
+            //   },
+            // },
+            missionHistories: {
+              where: {
+                createdAt: {
+                  gte: startOfDay(new Date()),
+                },
+                taskId: null,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
+        publicAchievement: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
     });
 
     return { total, items };
@@ -56,7 +132,35 @@ export class AchievementRepository {
   async getUserAchievement(accountId: number, achievementId: number) {
     return await this.prismaService.achievement.findFirst({
       where: { id: achievementId, accountId, deletedAt: null },
-      include: this.getIncludeArgs(),
+      include: {
+        missions: {
+          where: { deletedAt: null },
+          include: {
+            // missionTasks: {
+            //   where: {
+            //     deletedAt: null,
+            //   },
+            // },
+            missionHistories: {
+              where: {
+                createdAt: {
+                  gte: startOfDay(new Date()),
+                },
+                taskId: null,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
+        publicAchievement: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
     });
   }
 

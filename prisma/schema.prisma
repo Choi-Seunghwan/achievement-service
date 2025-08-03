@@ -65,10 +65,10 @@ model Mission {
   deletedAt   DateTime? @map("deleted_at")
   completedAt DateTime? @map("completed_at")
 
-  achievement    Achievement?     @relation(fields: [achievementId], references: [id])
-  missionTasks   MissionTask[]
-  missionTags    MissionTag[]
-  missionHistory MissionHistory[]
+  achievement      Achievement?     @relation(fields: [achievementId], references: [id])
+  missionTasks     MissionTask[]
+  missionTags      MissionTag[]
+  missionHistories MissionHistory[]
 
   publicMission PublicMission? @relation(fields: [publicMissionId], references: [id])
 
