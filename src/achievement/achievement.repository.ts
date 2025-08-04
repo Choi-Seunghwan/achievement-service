@@ -59,6 +59,7 @@ export class AchievementRepository {
             //     deletedAt: null,
             //   },
             // },
+
             missionHistories: {
               where: {
                 createdAt: {
@@ -72,6 +73,7 @@ export class AchievementRepository {
               take: 1,
             },
           },
+          orderBy: { createdAt: 'desc' },
         },
         publicAchievement: {
           where: {
