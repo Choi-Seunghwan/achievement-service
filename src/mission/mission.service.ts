@@ -603,6 +603,9 @@ export class MissionService {
   async deleteMission(accountId: number, missionId: number) {
     const mission = await this.getMission(accountId, missionId);
 
+    if (mission.achievementId)
+      throw new BadRequestException('mission has achievement');
+
     await this.missionRepository.updateMission({
       where: { id: missionId, accountId },
       data: {

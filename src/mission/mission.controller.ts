@@ -165,7 +165,7 @@ export class MissionController {
   /**
    * mission 삭제
    */
-  @Delete(':missionId/delete')
+  @Delete(':missionId/')
   @UseGuards(AuthGuard)
   async deleteMission(
     @User() user: JwtPayload,
