@@ -32,7 +32,12 @@ export class MissionRepository {
       ...args,
       where: { ...args.where, deletedAt: null },
       include: this.getMissionsIncludeArgs(),
-      orderBy: { createdAt: 'desc', ...args.orderBy },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
+
       omit: { ...args.omit, deletedAt: true },
     });
   }

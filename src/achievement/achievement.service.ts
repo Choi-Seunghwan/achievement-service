@@ -2,10 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AchievementRepository } from './achievement.repository';
 import { AchievementStatus, MissionStatus } from '@prisma/client';
 import { MissionView } from 'src/mission/view/mission-view';
+import { MissionService } from 'src/mission/mission.service';
 
 @Injectable()
 export class AchievementService {
-  constructor(private readonly achievementRepository: AchievementRepository) {}
+  constructor(
+    private readonly achievementRepository: AchievementRepository,
+    private readonly missionService: MissionService,
+  ) {}
 
   async getUserAchievementCount(accountId: number) {
     return await this.achievementRepository.getAchievementCount(accountId);
@@ -118,28 +122,31 @@ export class AchievementService {
 
     if (!achievement) throw new BadRequestException('Achievement not found');
 
-    if (
-      !achievement.missions.every(
-        (mission) =>
-          mission.status === MissionStatus.COMPLETED ||
-          mission.missionHistories?.[0]?.completed === true,
-      )
-    )
+    const allCompleted = achievement.missions.every(
+      (mission) =>
+        mission.status === MissionStatus.COMPLETED ||
+        mission.missionHistories?.[0]?.completed === true,
+    );
+
+    if (!allCompleted)
       throw new BadRequestException('All missions are not completed');
 
     await this.achievementRepository.updateAchievement(achievementId, {
       completedAt: new Date(),
       status: AchievementStatus.COMPLETED,
-      missions: {
-        updateMany: {
-          where: { deletedAt: null, status: MissionStatus.IN_PROGRESS },
-          data: {
-            status: MissionStatus.COMPLETED,
-            updatedAt: new Date(),
-            completedAt: new Date(),
-          },
-        },
-      },
     });
+
+    await Promise.all(
+      achievement.missions
+        .filter((m) => m.status !== MissionStatus.COMPLETED)
+        .map((m) => {
+          return this.missionService.completeMissionWithHistory(
+            accountId,
+            m.id,
+          );
+        }),
+    );
+
+    return true;
   }
 }

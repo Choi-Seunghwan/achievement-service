@@ -60,7 +60,7 @@ export class MissionService {
           },
           {
             // 진행 중 반복 미션
-            status: { not: MissionStatus.COMPLETED },
+            // status: { not: MissionStatus.COMPLETED }, // 완료됨도 오늘 완료는 표시 하도록 수정
             missionHistories: {
               some: {
                 createdAt: { gte: todayStart },
@@ -698,6 +698,30 @@ export class MissionService {
         taskSnapshot: {
           id: task.id,
           name: task.name,
+        },
+      },
+    });
+
+    return true;
+  }
+
+  /**
+   * 미션 완료, history 생성
+   */
+  async completeMissionWithHistory(accountId: number, missionId: number) {
+    const mission = await this.getMission(accountId, missionId);
+
+    if (mission.status === MissionStatus.COMPLETED)
+      throw new BadRequestException('already completed');
+
+    await this.missionRepository.updateMission({
+      where: { id: missionId, accountId },
+      data: {
+        status: MissionStatus.COMPLETED,
+        missionHistories: {
+          create: {
+            completed: true,
+          },
         },
       },
     });
