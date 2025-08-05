@@ -61,7 +61,9 @@ export class PublicAchievementController {
   @UseGuards(AuthGuard)
   async getPopularPublicAchievements(@User() user: JwtPayload) {
     const result =
-      await this.publicAchievementService.getPopularPublicAchievements();
+      await this.publicAchievementService.getPopularPublicAchievements(
+        user.accountId,
+      );
     return PagingResponse.of(
       result.items,
       result.total,

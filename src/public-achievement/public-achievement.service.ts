@@ -140,6 +140,7 @@ export class PublicAchievementService {
       paging,
     );
 
+    // 유저 참여 상태
     const userParticipatingAchievements =
       await this.achievementParticipantService.getUserParticipating(
         accountId,
@@ -150,6 +151,7 @@ export class PublicAchievementService {
       userParticipatingAchievements.map((p) => p.publicAchievementId),
     );
 
+    // 응답 데이터
     const resItems = result.items.map((item) =>
       toPublicAchievementResDto(
         item,
@@ -163,8 +165,11 @@ export class PublicAchievementService {
     };
   }
 
-  async getPopularPublicAchievements() {
-    return await this.publicAchievementRepository.getPublicAchievements(
+  async getPopularPublicAchievements(accountId: number): Promise<{
+    items: PublicAchievementResDto[];
+    total: number;
+  }> {
+    const result = await this.publicAchievementRepository.getPublicAchievements(
       {
         orderBy: [
           {
@@ -177,6 +182,30 @@ export class PublicAchievementService {
       },
       { page: 1, size: 10 },
     );
+
+    // 유저 참여 상태
+    const userParticipatingAchievements =
+      await this.achievementParticipantService.getUserParticipating(
+        accountId,
+        result.items.map((item) => item.id),
+      );
+
+    const userParticipatingAchievementIds = new Set(
+      userParticipatingAchievements.map((p) => p.publicAchievementId),
+    );
+
+    // 응답 데이터
+    const resItems = result.items.map((item) =>
+      toPublicAchievementResDto(
+        item,
+        userParticipatingAchievementIds.has(item.id),
+      ),
+    );
+
+    return {
+      ...result,
+      items: resItems,
+    };
   }
 
   // 공개 업적 상세 조회
