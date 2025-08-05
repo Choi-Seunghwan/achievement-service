@@ -11,4 +11,8 @@ export class GetMissionsDto {
   @IsEnum(MissionStatus)
   @IsOptional()
   status?: MissionStatus;
+
+  @IsNumber()
+  @IsOptional()
+  tagId?: number;
 }

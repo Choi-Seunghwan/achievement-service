@@ -32,6 +32,7 @@ export class MissionController {
       {
         accountId: user.accountId,
         status: query.status ? query.status : undefined,
+        tagId: query.tagId ? query.tagId : undefined,
       },
       { page: query.page, size: query.size },
     );

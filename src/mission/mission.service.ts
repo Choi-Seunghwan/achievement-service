@@ -135,13 +135,26 @@ export class MissionService {
    * 사용자 미션 목록 가져오기
    */
   async getMissionsWithPaging(
-    args: { accountId: number; status?: MissionStatus },
+    args: { accountId: number; status?: MissionStatus; tagId?: number },
     paging: { page: number; size: number },
   ) {
+    const where = {
+      accountId: args.accountId,
+      status: args.status,
+      deletedAt: null,
+      ...(args.tagId !== undefined
+        ? {
+            missionTags: {
+              some: {
+                tagId: args.tagId,
+              },
+            },
+          }
+        : {}),
+    };
+
     return await this.missionRepository.getMissionsWithPaging(
-      {
-        where: { accountId: args.accountId, status: args.status },
-      },
+      { where },
       paging,
     );
   }
