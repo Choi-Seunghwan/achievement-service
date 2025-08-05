@@ -43,6 +43,30 @@ export class AchievementRepository {
     };
   }
 
+  async getWithMissions(args: Prisma.AchievementFindFirstArgs) {
+    return await this.prismaService.achievement.findFirst({
+      where: {
+        ...args.where,
+        deletedAt: null,
+      },
+      include: {
+        missions: {
+          where: { deletedAt: null },
+        },
+      },
+    });
+  }
+
+  async update(achievementId, data: Prisma.AchievementUpdateInput) {
+    return await this.prismaService.achievement.update({
+      where: {
+        id: achievementId,
+        deletedAt: null,
+      },
+      data,
+    });
+  }
+
   async getUserAchievements(accountId: number) {
     return await this.prismaService.achievement.findMany({
       where: {
@@ -81,6 +105,11 @@ export class AchievementRepository {
           },
         },
       },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
   }
 

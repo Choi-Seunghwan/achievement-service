@@ -20,23 +20,23 @@ export class AchievementParticipantController {
   }
 
   // 공개 업적 참여
-  @Post(':id/join')
-  join(
-    @User() user: JwtPayload,
-    @Param('publicAchievementId') publicAchievementId: number,
-  ) {
-    return this.achievementParticipantService.joinPublicAchievement(
-      user.accountId,
-      publicAchievementId,
-    );
-  }
+  // @Post(':id/join')
+  // join(
+  //   @User() user: JwtPayload,
+  //   @Param('publicAchievementId') publicAchievementId: number,
+  // ) {
+  //   return this.achievementParticipantService.joinPublicAchievement(
+  //     user.accountId,
+  //     publicAchievementId,
+  //   );
+  // }
 
   // // 공개 업적 나가기
-  @Post(':id/leave')
-  leave(@User() user: JwtPayload, @Param('id') publicAchievementId: number) {
-    return this.achievementParticipantService.leavePublicAchievement(
-      user.accountId,
-      +publicAchievementId,
-    );
-  }
+  // @Post(':id/leave')
+  // leave(@User() user: JwtPayload, @Param('id') publicAchievementId: number) {
+  //   return this.achievementParticipantService.leavePublicAchievement(
+  //     user.accountId,
+  //     +publicAchievementId,
+  //   );
+  // }
 }

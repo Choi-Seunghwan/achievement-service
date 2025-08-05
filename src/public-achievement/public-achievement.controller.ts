@@ -132,6 +132,19 @@ export class PublicAchievementController {
     return Response.of(res);
   }
 
+  @Post('/:publicAchievementId/leave')
+  @UseGuards(AuthGuard)
+  async leavePublicAchievement(
+    @User() user: JwtPayload,
+    @Param('publicAchievementId') publicAchievementId: number,
+  ) {
+    const res = await this.publicAchievementService.leavePublicAchievement(
+      user.accountId,
+      publicAchievementId,
+    );
+    return Response.of(res);
+  }
+
   // @Post('/:publicAchievementId/leave')
   // async leavePublicAchievement() {}
 

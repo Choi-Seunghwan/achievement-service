@@ -629,6 +629,22 @@ export class MissionService {
   }
 
   /**
+   * 업적 - 미션 연결 해제
+   */
+  async disconnectAchievement(accountId: number, missionIds: number[]) {
+    await this.missionRepository.updateMissions({
+      where: {
+        accountId,
+        id: { in: missionIds },
+        achievementId: { not: null },
+      },
+      data: {
+        achievementId: null,
+      },
+    });
+  }
+
+  /**
    * 미션 Task 생성
    */
   async createMissionTask(accountId: number, missionId: number) {

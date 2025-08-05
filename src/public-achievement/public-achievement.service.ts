@@ -340,6 +340,11 @@ export class PublicAchievementService {
       throw new BadRequestException('Not a participant of this achievement');
     }
 
+    await this.achievementService.deleteAchievementByPublicAchievementId(
+      accountId,
+      publicAchievementId,
+    );
+
     await this.achievementParticipantService.leavePublicAchievement(
       accountId,
       publicAchievementId,

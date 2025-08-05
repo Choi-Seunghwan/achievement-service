@@ -26,7 +26,11 @@ export class PublicAchievementRepository {
         missions: { where: { deletedAt: null } },
         _count: {
           select: {
-            participants: true,
+            participants: {
+              where: {
+                leavedAt: null,
+              },
+            },
           },
         },
       },
@@ -48,7 +52,11 @@ export class PublicAchievementRepository {
         missions: { where: { deletedAt: null } },
         _count: {
           select: {
-            participants: true,
+            participants: {
+              where: {
+                leavedAt: null,
+              },
+            },
           },
         },
       },

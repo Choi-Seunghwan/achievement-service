@@ -3,6 +3,7 @@ import { AchievementRepository } from './achievement.repository';
 import { AchievementStatus, MissionStatus } from '@prisma/client';
 import { MissionView } from 'src/mission/view/mission-view';
 import { MissionService } from 'src/mission/mission.service';
+import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class AchievementService {
@@ -55,6 +56,50 @@ export class AchievementService {
         publicAchievementId: data.publicAchievementId,
       },
     });
+  }
+  async deleteAchievement(accountId: number, achievementId: number) {
+    const achievement = await this.achievementRepository.getUserAchievement(
+      accountId,
+      achievementId,
+    );
+
+    if (!achievement) throw new BadRequestException('Not found achievement');
+
+    await this.missionService.disconnectAchievement(
+      accountId,
+      achievement.missions.map((m) => m.id),
+    );
+
+    await this.achievementRepository.update(achievement.id, {
+      deletedAt: new Date(),
+    });
+  }
+
+  // 공개 업적 Id 로, 업적, 미션 제거
+  @Transactional()
+  async deleteAchievementByPublicAchievementId(
+    accountId: number,
+    publicAchievementId: number,
+  ) {
+    const achievement = await this.achievementRepository.getWithMissions({
+      where: {
+        accountId,
+        publicAchievementId,
+      },
+    });
+
+    if (!achievement) throw new BadRequestException('Not found achievement');
+
+    await this.missionService.disconnectAchievement(
+      accountId,
+      achievement.missions.map((m) => m.id),
+    );
+
+    await this.achievementRepository.update(achievement.id, {
+      deletedAt: new Date(),
+    });
+
+    return true;
   }
 
   async getAchievement(accountId: number, achievementId: number) {

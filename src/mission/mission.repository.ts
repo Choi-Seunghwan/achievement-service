@@ -158,6 +158,7 @@ export class MissionRepository {
       data: { ...args.data, updatedAt: new Date() },
     });
   }
+
   async getMissionCount(accountId: number) {
     const [inProgressCount, completedCount] = await Promise.all([
       this.prisma.mission.count({
