@@ -67,7 +67,7 @@ export class AchievementRepository {
     });
   }
 
-  async getUserAchievements(accountId: number) {
+  async getUserActiveAchievements(accountId: number) {
     return await this.prismaService.achievement.findMany({
       where: {
         accountId,

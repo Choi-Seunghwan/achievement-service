@@ -111,9 +111,7 @@ export class AchievementService {
 
   async getUserActiveAchievements(accountId: number) {
     const achievements =
-      await this.achievementRepository.getUserAchievements(accountId);
-
-    // achievement 에서, mission todayCompleted 여부
+      await this.achievementRepository.getUserActiveAchievements(accountId);
 
     const res = achievements.map((achievement) => {
       return {
@@ -121,6 +119,7 @@ export class AchievementService {
         missions: achievement.missions.map((mission) => {
           return {
             ...mission,
+            // achievement 에서, mission todayCompleted 여부
             todayCompleted: mission?.missionHistories?.[0]?.completed === true,
           };
         }) as MissionView[],
