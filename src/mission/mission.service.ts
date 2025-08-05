@@ -640,6 +640,7 @@ export class MissionService {
       },
       data: {
         achievementId: null,
+        publicMissionId: null,
       },
     });
   }
