@@ -46,8 +46,8 @@ model Mission {
   accountId       Int           @map("account_id")
   achievementId   Int?          @map("achievement_id")
   publicMissionId Int?
-  name            String
-  description     String?
+  name            String        @db.VarChar(50)
+  description     String?       @db.VarChar(500)
   status          MissionStatus @default(IN_PROGRESS)
   icon            String?
 
@@ -81,7 +81,7 @@ model MissionTask {
   id                  Int               @id @default(autoincrement())
   missionId           Int               @map("mission_id")
   publicMissionTaskId Int?
-  name                String
+  name                String            @db.VarChar(50)
   status              MissionTaskStatus @default(IN_PROGRESS)
 
   createdAt DateTime  @default(now()) @map("created_at")
@@ -116,10 +116,10 @@ model Achievement {
   id                  Int               @id @default(autoincrement())
   accountId           Int               @map("account_id")
   publicAchievementId Int?
-  name                String
+  name                String            @db.VarChar(50)
   status              AchievementStatus @default(IN_PROGRESS)
   icon                String?
-  description         String?
+  description         String?           @db.VarChar(500)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -139,7 +139,7 @@ model Achievement {
 model Tag {
   id        Int     @id @default(autoincrement())
   accountId Int     @map("account_id")
-  name      String
+  name      String  @db.VarChar(20)
   color     String?
 
   missions MissionTag[]
@@ -173,8 +173,8 @@ model MissionTag {
 model PublicAchievement {
   id          Int     @id @default(autoincrement())
   creatorId   Int     @map("creator_id")
-  name        String
-  description String?
+  name        String  @db.VarChar(50)
+  description String? @db.VarChar(500)
   icon        String?
 
   createdAt DateTime  @default(now()) @map("created_at")
@@ -194,8 +194,8 @@ model PublicAchievement {
 model PublicMission {
   id                  Int                @id @default(autoincrement())
   publicAchievementId Int                @map("public_achievement_id")
-  name                String
-  description         String?
+  name                String             @db.VarChar(50)
+  description         String?            @db.VarChar(500)
   repeatType          MissionRepeatType
   repeatDays          MissionRepeatDay[]
   icon                String?
@@ -216,7 +216,7 @@ model PublicMission {
 // 공개 작업 (마스터)
 model PublicMissionTask {
   id              Int    @id @default(autoincrement())
-  name            String
+  name            String @db.VarChar(50)
   publicMissionId Int    @map("public_mission_id")
 
   createdAt DateTime  @default(now()) @map("created_at")
@@ -247,10 +247,10 @@ model AchievementParticipant {
 }
 
 model PublicAchievementComment {
-  id                  Int     @id @default(autoincrement())
-  accountId           Int     @map("account_id")
-  publicAchievementId Int     @map("public_achievement_id")
-  comment             String?
+  id                  Int    @id @default(autoincrement())
+  accountId           Int    @map("account_id")
+  publicAchievementId Int    @map("public_achievement_id")
+  comment             String @db.VarChar(200)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
