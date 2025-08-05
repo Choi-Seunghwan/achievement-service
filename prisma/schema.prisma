@@ -241,7 +241,7 @@ model AchievementParticipant {
 
   publicAchievement PublicAchievement? @relation(fields: [publicAchievementId], references: [id])
 
-  @@unique([accountId, publicAchievementId])
+  @@unique([accountId, publicAchievementId, jointedAt])
   @@index([accountId, publicAchievementId])
   @@map("achievement_participant")
 }
