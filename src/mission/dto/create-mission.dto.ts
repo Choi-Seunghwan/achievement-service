@@ -1,12 +1,14 @@
-import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString, Length } from 'class-validator';
 import { CreateMissionTaskDto } from './create-mission-task.dto';
 import { MissionRepeatDay, MissionRepeatType } from '@prisma/client';
 
 export class CreateMissionDto {
   @IsString()
+  @Length(1, 50)
   name: string;
 
   @IsString()
+  @Length(0, 500)
   @IsOptional()
   description?: string;
 

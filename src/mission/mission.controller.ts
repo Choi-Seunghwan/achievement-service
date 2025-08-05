@@ -199,21 +199,21 @@ export class MissionController {
   /**
    * mission task 생성
    */
-  @Post('/:missionId/tasks')
-  @UseGuards(AuthGuard)
-  async createTask(
-    @User() user: JwtPayload,
-    @Param() missionIdParam: MissionIdParam,
-    // @Body() dto: CreateMissionTaskDto,
-  ) {
-    const result = await this.missionService.createMissionTask(
-      user.accountId,
-      missionIdParam.missionId,
-      // { name: dto.name },
-    );
+  // @Post('/:missionId/tasks')
+  // @UseGuards(AuthGuard)
+  // async createTask(
+  //   @User() user: JwtPayload,
+  //   @Param() missionIdParam: MissionIdParam,
+  //   // @Body() dto: CreateMissionTaskDto,
+  // ) {
+  //   const result = await this.missionService.createMissionTask(
+  //     user.accountId,
+  //     missionIdParam.missionId,
+  //     // { name: dto.name },
+  //   );
 
-    return Response.of(result);
-  }
+  //   return Response.of(result);
+  // }
 
   /**
    * mission task 완료
@@ -253,9 +253,9 @@ export class MissionController {
   /**
    * mission task 정렬
    */
-  @Post('/:missionId/tasks/order')
-  @UseGuards(AuthGuard)
-  async updateTaskOrder() {
-    // @Param() missionId: MissionIdParam, // @User() user: JwtPayload,
-  }
+  // @Post('/:missionId/tasks/order')
+  // @UseGuards(AuthGuard)
+  // async updateTaskOrder() {
+  //   // @Param() missionId: MissionIdParam, // @User() user: JwtPayload,
+  // }
 }

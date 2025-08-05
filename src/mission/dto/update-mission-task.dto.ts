@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateMissionTaskDto {
   @IsOptional()
@@ -6,5 +6,6 @@ export class UpdateMissionTaskDto {
   id?: number;
 
   @IsString()
+  @Length(1, 50)
   name: string;
 }
