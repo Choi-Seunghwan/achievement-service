@@ -2,6 +2,7 @@ import { AuthGuard, JwtPayload, User } from '@choi-seunghwan/authorization';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -79,6 +80,19 @@ export class AchievementController {
     @Param('achievementId') achievementId: number,
   ) {
     const res = await this.achievementService.completeAchievement(
+      user.accountId,
+      achievementId,
+    );
+    return Response.of(res);
+  }
+
+  @Delete('/:achievementId/')
+  @UseGuards(AuthGuard)
+  async deleteAchievement(
+    @User() user: JwtPayload,
+    @Param('achievementId') achievementId: number,
+  ) {
+    const res = await this.achievementService.deleteAchievement(
       user.accountId,
       achievementId,
     );
