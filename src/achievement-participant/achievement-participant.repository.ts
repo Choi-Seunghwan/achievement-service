@@ -65,4 +65,22 @@ export class AchievementParticipantRepository {
       data: { leavedAt: new Date() },
     });
   }
+
+  async getParticipantWithPaging(
+    publicAchievementId: number,
+    paging: { page: number; size: number },
+  ) {
+    const total = await this.prismaService.achievementParticipant.count({
+      where: { publicAchievementId, leavedAt: null },
+    });
+
+    const items = await this.prismaService.achievementParticipant.findMany({
+      where: { publicAchievementId, leavedAt: null },
+      skip: (paging.page - 1) * paging.size,
+      take: paging.size,
+      orderBy: { jointedAt: 'desc' },
+    });
+
+    return { total, items };
+  }
 }

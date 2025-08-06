@@ -13,6 +13,7 @@ import { CreatePublicAchievementDto } from './dtos/create-public-achievement.dto
 import { GetPublicAchievementsDto } from './dtos/get-public-achievements.dto';
 import { PagingResponse, Response } from '@choi-seunghwan/api-util';
 import { getPublicAchievementCommentDto } from './dtos/get-public-achievement-comment.dto';
+import { GetPublicAchievementParticipantsDto } from './dtos/get-public-achievement-participants.dto';
 
 @Controller('public-achievements')
 export class PublicAchievementController {
@@ -145,6 +146,20 @@ export class PublicAchievementController {
       publicAchievementId,
     );
     return Response.of(res);
+  }
+
+  @Get('/:publicAchievementId/participants')
+  async getPublicAchievementParticipants(
+    @User() user: JwtPayload,
+    @Param('publicAchievementId') publicAchievementId: number,
+    @Query() query: GetPublicAchievementParticipantsDto,
+  ) {
+    const res =
+      await this.publicAchievementService.getPublicAchievementParticipantsWithPaging(
+        publicAchievementId,
+        { page: query.page, size: query.size },
+      );
+    return PagingResponse.of(res.items, res.total, query.page, query.size);
   }
 
   // @Post('/:publicAchievementId/leave')

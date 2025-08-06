@@ -14,6 +14,7 @@ import { PublicAchievementCommentResDto } from './dtos/public-achievement-commen
 import { AchievementParticipantService } from 'src/achievement-participant/achievement-participant.service';
 import { PublicAchievementResDto } from './dtos/public-achievement-res.dto';
 import toPublicAchievementResDto from './utils/toPublicAchievementResDto';
+import { PublicAchievementParticipantResDto } from './dtos/public-achievement-participant-res.dto';
 
 @Injectable()
 export class PublicAchievementService {
@@ -380,5 +381,27 @@ export class PublicAchievementService {
     );
 
     return true;
+  }
+
+  async getPublicAchievementParticipantsWithPaging(
+    publicAchievementId: number,
+    { page, size }: { page: number; size: number },
+  ): Promise<{ items: PublicAchievementParticipantResDto[]; total: number }> {
+    const publicAchievement =
+      await this.publicAchievementRepository.getPublicAchievement({
+        where: { id: publicAchievementId },
+      });
+
+    if (!publicAchievement) {
+      throw new NotFoundException('Public Achievement not found');
+    }
+
+    const result =
+      await this.achievementParticipantService.getPublicAchievementParticipantsWithPaging(
+        publicAchievementId,
+        { page, size },
+      );
+
+    return result;
   }
 }

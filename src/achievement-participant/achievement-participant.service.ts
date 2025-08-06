@@ -1,10 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AchievementParticipantRepository } from './achievement-participant.repository';
+import { PublicAchievementParticipantResDto } from 'src/public-achievement/dtos/public-achievement-participant-res.dto';
+import { AccountClientService } from 'src/account/account-client.service';
 
 @Injectable()
 export class AchievementParticipantService {
   constructor(
     private readonly achievementParticipantRepository: AchievementParticipantRepository,
+    private readonly accountService: AccountClientService,
   ) {}
 
   // 내가 참여 중인 공개 업적 목록 조회
@@ -70,5 +73,45 @@ export class AchievementParticipantService {
       );
 
     return participant;
+  }
+
+  async getPublicAchievementParticipantsWithPaging(
+    publicAchievementId: number,
+    paging: { page: number; size: number },
+  ): Promise<{ total: number; items: PublicAchievementParticipantResDto[] }> {
+    const { total, items } =
+      await this.achievementParticipantRepository.getParticipantWithPaging(
+        publicAchievementId,
+        paging,
+      );
+
+    const accounts = await this.accountService.getUsersInfo(
+      items.map((participant) => participant.accountId),
+    );
+
+    return {
+      total,
+      items: items.map((participant) => {
+        const account = accounts.find((a) => a.id === participant.accountId);
+
+        if (!account) {
+          return {
+            ...participant,
+            account: null,
+          };
+        }
+
+        return {
+          ...participant,
+          account: {
+            id: account.id,
+            nickname: account.nickname,
+            email: account.email,
+            createdAt: account.createdAt,
+            updatedAt: account.updatedAt,
+          },
+        };
+      }),
+    };
   }
 }
