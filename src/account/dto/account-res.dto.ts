@@ -3,6 +3,7 @@ export class AccountResDto {
   loginId?: string;
   nickname?: string;
   email: string;
+  image?: string;
   createdAt: Date;
   updatedAt: Date;
 }
