@@ -107,6 +107,7 @@ export class AchievementParticipantService {
             id: account.id,
             nickname: account.nickname,
             email: account.email,
+            image: account.image,
             createdAt: account.createdAt,
             updatedAt: account.updatedAt,
           },
