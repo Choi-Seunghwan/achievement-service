@@ -1,8 +1,8 @@
-import { AccountResDto } from 'src/account/dto/account-res.dto';
+import { AccountInfoDto } from './public-achievement-comment-res.dto';
 
 export class PublicAchievementParticipantResDto {
   id: number;
   accountId: number;
-  account: AccountResDto | null;
+  account: AccountInfoDto | null;
   publicAchievementId: number;
 }

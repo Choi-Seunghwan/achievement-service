@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AchievementParticipantRepository } from './achievement-participant.repository';
 import { PublicAchievementParticipantResDto } from 'src/public-achievement/dtos/public-achievement-participant-res.dto';
-import { AccountClientService } from 'src/account/account-client.service';
+import { AccountService } from 'src/account/account.service';
 
 @Injectable()
 export class AchievementParticipantService {
   constructor(
     private readonly achievementParticipantRepository: AchievementParticipantRepository,
-    private readonly accountService: AccountClientService,
+    private readonly accountService: AccountService,
   ) {}
 
   // 내가 참여 중인 공개 업적 목록 조회
@@ -85,7 +85,7 @@ export class AchievementParticipantService {
         paging,
       );
 
-    const accounts = await this.accountService.getUsersInfo(
+    const accounts = await this.accountService.getAccounts(
       items.map((participant) => participant.accountId),
     );
 

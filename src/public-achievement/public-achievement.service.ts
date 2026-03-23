@@ -9,7 +9,7 @@ import { MissionService } from 'src/mission/mission.service';
 import { PublicMissionTaskService } from 'src/public-mission-task/public-mission-task.service';
 import { AchievementService } from 'src/achievement/achievement.service';
 import { PublicAchievementCommentRepository } from './public-achievement-comment.repository.';
-import { AccountClientService } from 'src/account/account-client.service';
+import { AccountService } from 'src/account/account.service';
 import { PublicAchievementCommentResDto } from './dtos/public-achievement-comment-res.dto';
 import { AchievementParticipantService } from 'src/achievement-participant/achievement-participant.service';
 import { PublicAchievementResDto } from './dtos/public-achievement-res.dto';
@@ -24,7 +24,7 @@ export class PublicAchievementService {
     private readonly publicMissionTaskService: PublicMissionTaskService,
     private readonly achievementService: AchievementService,
     private readonly missionService: MissionService,
-    private readonly accountService: AccountClientService,
+    private readonly accountService: AccountService,
     private readonly achievementParticipantService: AchievementParticipantService,
   ) {}
 
@@ -252,7 +252,7 @@ export class PublicAchievementService {
         { page, size },
       );
 
-    const accounts = await this.accountService.getUsersInfo(
+    const accounts = await this.accountService.getAccounts(
       result.items.map((comment) => comment.accountId),
     );
 

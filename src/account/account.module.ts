@@ -1,12 +1,11 @@
-// account.module.ts
-
 import { Module } from '@nestjs/common';
-import { AccountClientModule } from './account-client.module';
-import { AccountClientService } from './account-client.service';
+import { AccountController } from './account.controller';
+import { AccountService } from './account.service';
+import { AccountRepository } from './account.repository';
 
 @Module({
-  imports: [AccountClientModule],
-  providers: [AccountClientService],
-  exports: [AccountClientService],
+  controllers: [AccountController],
+  providers: [AccountService, AccountRepository],
+  exports: [AccountService],
 })
 export class AccountModule {}

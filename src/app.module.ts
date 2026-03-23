@@ -12,6 +12,8 @@ import { PublicAchievementModule } from './public-achievement/public-achievement
 import { PublicMissionTaskModule } from './public-mission-task/public-mission-task.module';
 import { AchievementParticipantModule } from './achievement-participant/achievement-participant.module';
 import { InfoModule } from './info/info.module';
+import { AccountModule } from './account/account.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { InfoModule } from './info/info.module';
     }),
     DatabaseModule,
     AuthorizationModule.forRoot({ jwtSecret: process.env.JWT_SECRET }),
+    AccountModule,
+    FeedbackModule,
     MissionModule,
     TagModule,
     AchievementModule,

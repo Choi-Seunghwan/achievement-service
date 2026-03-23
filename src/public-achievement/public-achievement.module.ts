@@ -6,7 +6,7 @@ import { PublicAchievementRepository } from './public-achievement.repository';
 import { PublicMissionTaskModule } from 'src/public-mission-task/public-mission-task.module';
 import { AchievementModule } from 'src/achievement/achievement.module';
 import { PublicAchievementCommentRepository } from './public-achievement-comment.repository.';
-import { AccountClientModule } from 'src/account/account-client.module';
+import { AccountModule } from 'src/account/account.module';
 import { AchievementParticipantModule } from 'src/achievement-participant/achievement-participant.module';
 
 @Module({
@@ -14,7 +14,7 @@ import { AchievementParticipantModule } from 'src/achievement-participant/achiev
     MissionModule,
     PublicMissionTaskModule,
     AchievementModule,
-    AccountClientModule,
+    AccountModule,
     AchievementParticipantModule,
   ],
   controllers: [PublicAchievementController],

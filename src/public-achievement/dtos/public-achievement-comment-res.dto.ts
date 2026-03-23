@@ -1,10 +1,17 @@
-import { AccountResDto } from 'src/account/dto/account-res.dto';
+export class AccountInfoDto {
+  id: number;
+  nickname?: string;
+  email?: string;
+  image?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+}
 
 export class PublicAchievementCommentResDto {
   id: number;
   publicAchievementId: number;
   accountId: number;
-  account: AccountResDto;
+  account: AccountInfoDto;
   comment: string;
   createdAt: Date;
   updatedAt?: Date;

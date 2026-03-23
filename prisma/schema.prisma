@@ -7,6 +7,69 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== 계정 =====
+
+enum AccountStatus {
+  PENDING
+  ACTIVATE
+  DELETED
+}
+
+// 계정
+model Account {
+  id      Int     @id @default(autoincrement())
+  isGuest Boolean @default(false) @map("is_guest") // Guest
+  guestId String? @unique @map("guest_id") // Guest UUID
+
+  loginId  String? @unique @map("login_id") @db.VarChar(20) // 계정아이디
+  email    String? @db.VarChar(255) // 이메일
+  nickname String  @db.VarChar(30) // nickname
+
+  encryptPassword String?       @map("encrypt_password") @db.VarChar(255) // 암호화된 비밀번호
+  status          AccountStatus @default(PENDING) // 계정 상태
+  image           String?       @db.VarChar() // 프로필 이미지
+
+  createdAt DateTime  @default(now()) @map("created_at") // 생성일
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") // 수정일
+  deletedAt DateTime? @map("deleted_at") // 삭제일
+
+  socialAccount SocialAccount?
+
+  @@index([guestId, loginId, email])
+  @@map("account")
+}
+
+// 소셜 계정
+model SocialAccount {
+  id             Int    @id @default(autoincrement()) /// 소셜 계정 ID
+  accountId      Int    @unique @map("account_id") // 계정 ID
+  provider       String @db.VarChar(20) // 소셜 로그인 제공자 (kakao, google, naver, apple)
+  providerUserId String @map("provider_user_id") @db.VarChar(255) /// 소셜 제공자에서 사용하는 유저 ID
+
+  createdAt DateTime  @default(now()) @map("created_at") /// 생성일
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") /// 수정일
+  deletedAt DateTime? @map("deleted_at") // 삭제일
+
+  account Account @relation(fields: [accountId], references: [id]) /// 계정
+
+  @@unique([provider, providerUserId]) // 동일 소셜 ID 중복 방지
+  @@index([provider, providerUserId])
+  @@map("social_account")
+}
+
+// 사용자 피드백
+model Feedback {
+  id Int @id @default(autoincrement())
+
+  content String @map("content") @db.VarChar(1100)
+
+  createdAt DateTime @default(now()) @map("created_at") /// 생성일
+
+  @@map("feedback")
+}
+
+// ===== 미션 / 업적 =====
+
 enum MissionStatus {
   IN_PROGRESS // 진행 중
   COMPLETED // 완료
