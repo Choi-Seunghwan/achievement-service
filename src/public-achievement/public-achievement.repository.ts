@@ -49,7 +49,10 @@ export class PublicAchievementRepository {
       where: { ...args.where, deletedAt: null },
       include: {
         ...args.include,
-        missions: { where: { deletedAt: null } },
+        missions: {
+          where: { deletedAt: null },
+          include: { tasks: { where: { deletedAt: null } } },
+        },
         _count: {
           select: {
             participants: {

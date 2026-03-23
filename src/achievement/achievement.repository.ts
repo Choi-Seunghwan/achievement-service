@@ -205,6 +205,29 @@ export class AchievementRepository {
     });
   }
 
+  /** 달성한 업적 목록 조회 */
+  async getCompletedAchievements(accountId: number) {
+    return await this.prismaService.achievement.findMany({
+      where: {
+        accountId,
+        status: AchievementStatus.COMPLETED,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        completedAt: true,
+        publicAchievement: {
+          select: {
+            category: true,
+          },
+        },
+      },
+      orderBy: { completedAt: 'desc' },
+    });
+  }
+
   async getAchievementCount(accountId: number) {
     const [inProgressCount, completedCount] = await Promise.all([
       this.prismaService.achievement.count({

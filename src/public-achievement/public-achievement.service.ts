@@ -124,15 +124,21 @@ export class PublicAchievementService {
     accountId: number,
     paging: { page: number; size: number },
     keyword?: string,
+    category?: string,
   ): Promise<{
     items: PublicAchievementResDto[];
     total: number;
   }> {
-    const whereArg = {
+    const whereArg: any = {
       name: {
         contains: keyword,
       },
     };
+
+    // 카테고리 필터
+    if (category) {
+      whereArg.category = category;
+    }
 
     const result = await this.publicAchievementRepository.getPublicAchievements(
       {
@@ -166,12 +172,22 @@ export class PublicAchievementService {
     };
   }
 
-  async getPopularPublicAchievements(accountId: number): Promise<{
+  async getPopularPublicAchievements(
+    accountId: number,
+    category?: string,
+  ): Promise<{
     items: PublicAchievementResDto[];
     total: number;
   }> {
+    // 카테고리 필터 조건
+    const whereArg: any = {};
+    if (category) {
+      whereArg.category = category;
+    }
+
     const result = await this.publicAchievementRepository.getPublicAchievements(
       {
+        where: whereArg,
         orderBy: [
           {
             participants: { _count: 'desc' },
@@ -182,6 +198,54 @@ export class PublicAchievementService {
         ],
       },
       { page: 1, size: 10 },
+    );
+
+    // 유저 참여 상태
+    const userParticipatingAchievements =
+      await this.achievementParticipantService.getUserParticipating(
+        accountId,
+        result.items.map((item) => item.id),
+      );
+
+    const userParticipatingAchievementIds = new Set(
+      userParticipatingAchievements.map((p) => p.publicAchievementId),
+    );
+
+    // 응답 데이터
+    const resItems = result.items.map((item) =>
+      toPublicAchievementResDto(
+        item,
+        userParticipatingAchievementIds.has(item.id),
+      ),
+    );
+
+    return {
+      ...result,
+      items: resItems,
+    };
+  }
+
+  // 시즌 공개 업적 조회 (종료일이 임박한 순서)
+  async getSeasonalPublicAchievements(
+    accountId: number,
+    paging: { page: number; size: number },
+  ): Promise<{
+    items: PublicAchievementResDto[];
+    total: number;
+  }> {
+    const now = new Date();
+
+    const whereArg = {
+      startDate: { not: null },
+      endDate: { not: null, gte: now },
+    };
+
+    const result = await this.publicAchievementRepository.getPublicAchievements(
+      {
+        where: whereArg,
+        orderBy: { endDate: 'asc' },
+      },
+      paging,
     );
 
     // 유저 참여 상태
@@ -333,13 +397,14 @@ export class PublicAchievementService {
     await this.missionService.createMissionsWithPublicData(
       accountId,
       achievement.id,
-      publicAchievement.missions.map((m) => ({
+      publicAchievement.missions.map((m: any) => ({
         publicMissionId: m.id,
         name: m.name,
         icon: m.icon,
         repeatType: m.repeatType,
         repeatDays: m.repeatDays,
         description: m.description,
+        tasks: m.tasks?.map((t: any) => ({ id: t.id, name: t.name })) || [],
       })),
     );
 

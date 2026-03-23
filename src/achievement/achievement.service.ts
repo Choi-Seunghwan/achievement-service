@@ -16,6 +16,11 @@ export class AchievementService {
     return await this.achievementRepository.getAchievementCount(accountId);
   }
 
+  /** 달성한 업적 목록 조회 */
+  async getCompletedAchievements(accountId: number) {
+    return await this.achievementRepository.getCompletedAchievements(accountId);
+  }
+
   async createAchievement(
     accountId: number,
     data: {

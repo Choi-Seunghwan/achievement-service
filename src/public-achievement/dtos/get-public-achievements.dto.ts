@@ -10,4 +10,9 @@ export class GetPublicAchievementsDto {
   @IsString()
   @IsOptional()
   keyword?: string;
+
+  // 카테고리 필터
+  @IsString()
+  @IsOptional()
+  category?: string;
 }

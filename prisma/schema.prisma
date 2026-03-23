@@ -239,6 +239,9 @@ model PublicAchievement {
   name        String  @db.VarChar(50)
   description String? @db.VarChar(500)
   icon        String?
+  category    String?   @db.VarChar(50) // 업적 카테고리 (운동/건강, 독서/학습, 자기개발, 라이프스타일, 시즌/트렌드)
+  startDate   DateTime? @map("start_date") // 시즌 업적 시작일
+  endDate     DateTime? @map("end_date") // 시즌 업적 종료일
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")

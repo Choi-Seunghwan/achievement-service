@@ -285,20 +285,39 @@ export class MissionService {
       repeatType?: MissionRepeatType;
       repeatDays?: MissionRepeatDay[];
       description?: string;
+      tasks?: { id: number; name: string }[];
     }[],
   ) {
-    return await this.missionRepository.createMissions({
-      data: data.map((d) => ({
-        accountId,
-        achievementId,
-        name: d.name,
-        description: d.description,
-        icon: d.icon,
-        repeatType: d.repeatType,
-        repeatDays: d.repeatDays,
-        publicMissionId: d.publicMissionId,
-      })),
-    });
+    // 미션 생성 후 각 미션에 대해 MissionTask도 복제
+    for (const d of data) {
+      const mission = await this.missionRepository.createMission({
+        data: {
+          accountId,
+          achievementId,
+          name: d.name,
+          description: d.description,
+          icon: d.icon,
+          repeatType: d.repeatType,
+          repeatDays: d.repeatDays,
+          publicMissionId: d.publicMissionId,
+        },
+      });
+
+      // PublicMissionTask가 있으면 MissionTask로 복제
+      if (d.tasks && d.tasks.length > 0) {
+        for (const task of d.tasks) {
+          await this.missionRepository.createMissionTask({
+            data: {
+              name: task.name,
+              mission: { connect: { id: mission.id } },
+              publicMissionTask: { connect: { id: task.id } },
+            },
+          });
+        }
+      }
+    }
+
+    return true;
   }
 
   /**

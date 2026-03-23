@@ -6,6 +6,12 @@ export class PublicAchievementResDto {
   description: string;
   icon: string;
   isParticipating: boolean;
+  category?: string;
+  startDate?: Date;
+  endDate?: Date;
+
+  // 시즌 업적 남은 일수
+  remainingDays?: number;
 
   _count?: {
     participants?: number;

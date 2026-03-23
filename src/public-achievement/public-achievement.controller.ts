@@ -49,6 +49,7 @@ export class PublicAchievementController {
       user.accountId,
       { page: query.page, size: query.size },
       query.keyword,
+      query.category,
     );
     return PagingResponse.of(
       result.items,
@@ -60,16 +61,40 @@ export class PublicAchievementController {
 
   @Get('/popular')
   @UseGuards(AuthGuard)
-  async getPopularPublicAchievements(@User() user: JwtPayload) {
+  async getPopularPublicAchievements(
+    @User() user: JwtPayload,
+    @Query('category') category?: string,
+  ) {
     const result =
       await this.publicAchievementService.getPopularPublicAchievements(
         user.accountId,
+        category,
       );
     return PagingResponse.of(
       result.items,
       result.total,
       1,
       result.items.length,
+    );
+  }
+
+  // 시즌 공개 업적 조회
+  @Get('/seasonal')
+  @UseGuards(AuthGuard)
+  async getSeasonalPublicAchievements(
+    @User() user: JwtPayload,
+    @Query() query: GetPublicAchievementsDto,
+  ) {
+    const result =
+      await this.publicAchievementService.getSeasonalPublicAchievements(
+        user.accountId,
+        { page: query.page, size: query.size },
+      );
+    return PagingResponse.of(
+      result.items,
+      result.total,
+      query.page,
+      query.size,
     );
   }
 
